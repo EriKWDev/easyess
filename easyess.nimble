@@ -9,5 +9,11 @@ srcDir        = "src"
 task docgen, "Generate docs":
   exec "nim doc2 --index:on -d:nimdoc --outdir:docs src/easyess.nim "
 
+task tests, "Run tests using both -d:release and without":
+  echo "Running tests in debug mode" 
+  exec "nimble test"
+  echo "Running tests in release mode"
+  exec "nimble -d:danger test"
+
 # Dependencies
-requires "nim >= 1.4.8"
+requires "nim >= 1.6.2"

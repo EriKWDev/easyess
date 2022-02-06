@@ -107,51 +107,47 @@ macro sys*(components: openArray[untyped];
   let
     systemsignature = newNimNode(nnkCurly)
     beforeSystem = newNimNode(nnkStmtList)
-    afterSystem = newNimNode(nnkStmtList)
     tupleDef = newNimNode(nnkTupleTy)
     containerTemplates = newNimNode(nnkStmtList)
 
   var
-    before = true
     isFunc = true
     requestsVar = false
 
-  for c1 in system:
-    if c1.kind in {nnkProcDef, nnkFuncDef}:
-      isFunc = c1.kind == nnkFuncDef
-      for c2 in c1:
-        case c2.kind:
-          of nnkIdent:
-            systemName = c2
+  block doneParsing:
+    for c1 in system:
+      if c1.kind in {nnkProcDef, nnkFuncDef}:
+        isFunc = c1.kind == nnkFuncDef
+        for c2 in c1:
+          case c2.kind:
+            of nnkIdent:
+              systemName = c2
 
-          of nnkFormalParams:
-            for c3 in c2:
-              if c3.kind == nnkIdentDefs:
-                for i, c4 in c3:
-                  if i == 0:
-                    itemName = c4
-                    continue
-
-                  elif i == 1:
-                    if c4.kind == nnkVarTy:
-                      requestsVar = true
-                      for c5 in c4:
-                        itemType = c5
-                        break
+            of nnkFormalParams:
+              for c3 in c2:
+                if c3.kind == nnkIdentDefs:
+                  for i, c4 in c3:
+                    if i == 0:
+                      itemName = c4
                       continue
 
-                    itemType = c4
+                    elif i == 1:
+                      if c4.kind == nnkVarTy:
+                        requestsVar = true
+                        for c5 in c4:
+                          itemType = c5
+                          break
+                        continue
 
-          of nnkStmtList:
-            systemBody = c2
-            before = false
+                      itemType = c4
 
-          else: discard
-    else:
-      if before:
-        beforeSystem.add(c1)
+            of nnkStmtList:
+              systemBody = c2
+              break doneParsing
+
+            else: discard
       else:
-        afterSystem.add(c1)
+        beforeSystem.add(c1)
 
   for component in components:
     systemsignature.add(ident(toComponentKindName($component)))
@@ -197,9 +193,6 @@ macro sys*(components: openArray[untyped];
 
         `systemBody`
 
-  entireSystem.add quote do:
-    `afterSystem`
-
   let systemDefinition: SystemDefinition = (
     name: systemName,
     signature: systemsignature,
@@ -216,14 +209,17 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   result = newNimNode(nnkStmtList)
 
   let
+    existsComponentKind = ident(toComponentKindName("exists"))
+
     componentKindType = ident("ECSComponentKind")
     signatureType = ident("Signature")
 
+    inspectLabelName = ident(toContainerName("ecsInspectLabel"))
     usedLabelsName = ident("usedLabels")
-    currentIdName = ident("currentId")
     componentName = ident("component")
     entitiesName = ident("entities")
     releaseName = ident("release")
+    nextIDName = ident("nextID")
     queryName = ident("query")
     itemName = ident("item")
     kindName = ident("kind")
@@ -235,7 +231,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     containerDefs = newNimNode(nnkRecList)
 
   containerDefs.add nnkIdentDefs.newTree(
-    nnkPostfix.newTree(ident("*"), currentIdName),
+    nnkPostfix.newTree(ident("*"), nextIDName),
     ident("Entity"),
     newEmptyNode())
 
@@ -252,7 +248,13 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           nnkBracketExpr.newTree(
             ident("Table"),
             ident("string"),
-            ident("bool")), newEmptyNode()))))
+            ident("bool")), newEmptyNode()),
+        nnkIdentDefs.newTree(
+          inspectLabelName,
+          nnkBracketExpr.newTree(
+            ident("array"),
+            newIntLitNode(maxEntities),
+            ident("string")), newEmptyNode()))))
 
   containerDefs.add nnkIdentDefs.newTree(
     nnkPostfix.newTree(ident("*"), entitiesName),
@@ -260,6 +262,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ident("array"),
       newIntLitNode(maxEntities),
       signatureType), newEmptyNode())
+
+  enumType.add(existsComponentKind)
 
   for component in componentDefinitions:
     let
@@ -309,18 +313,23 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       new(result)
 
   result.add quote do:
+    func getSignature*(`ecsName`: `ecsType`; `entityName`: Entity): Signature =
+      ## Get a the set of ComponentKind that represents this entity
+      result = `ecsName`.`entitiesName`[`entityName`.idx]
+
+  result.add quote do:
     func inspect*(`ecsName`: `ecsType`; `entityName`: Entity): string =
       ## Get a string representation of `entity` including its label.
       ## When `release` is defined, only the entity id is returned as a string.
       when not defined(release):
-        result = "Entity("
-        result &= $`ecsName`.`entitiesName`[`entityName`.idx]
-        result &= ")"
+        result = `ecsName`.`inspectLabelName`[`entityName`.idx] & "["
+        result &= $`entityName`.idx
+        result &= "]"
       else:
         result = $`entityName`
 
   result.add quote do:
-    func newEntity*(`ecsName`: `ecsType`; label: string): Entity =
+    func newEntity*(`ecsName`: `ecsType`; label: string = "Entity"): Entity =
       when not defined(release):
         var
           n = 0
@@ -332,24 +341,41 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
         `ecsName`.`usedLabelsName`[actualName] = true
 
-      for id in `ecsName`.`currentIdName`.idx .. high(`ecsName`.`entitiesName`):
-        if card(`ecsName`.`entitiesName`[id]) == 0:
-          `ecsName`.`currentIdName` = id.Entity
-          return `ecsName`.`currentIdName`
+      var newId = -1
+      for id in `ecsName`.`nextIDName`.idx .. high(`ecsName`.`entitiesName`):
+        if `existsComponentKind` notin `ecsName`.`entitiesName`[id]:
+          newId = id
+          inc `ecsName`.`nextIDName`
+          break
+
+      if newId < 0:
+        raise newException(IndexDefect, "Tried to instantiate Entity '" &
+            label & "' but ran out of ID:s. You can increase the number of supported entities by supplying 'ECSConfig(maxEntities: <int>)' to 'createECS()'")
+
+      result = newId.Entity
+
+      when not defined release:
+        `ecsName`.`inspectLabelName`[result.idx] = actualName
 
   result.add quote do:
     func register(`ecsName`: `ecsType`;
                   `entityName`: Entity;
                   signature: `signatureType` = {}) =
       `ecsName`.`entitiesName`[`entityName`.idx] = signature
+      `ecsName`.`entitiesName`[`entityName`.idx].incl(`existsComponentKind`)
 
   result.add quote do:
     func extractComponents*(root: NimNode): seq[NimNode] {.compileTime.} =
       root.expectKind(nnkStmtList)
       for c1 in root:
-        c1.expectKind(nnkTupleConstr)
-        for c2 in c1:
-          result.add(c2)
+        case c1.kind:
+          of nnkTupleConstr:
+            for c2 in c1:
+              result.add(c2)
+          of nnkPar:
+            for c2 in c1:
+              return @[c2]
+          else: doAssert false
 
   result.add quote do:
     func extractComponentName*(component: NimNode): string {.compileTime.} =
@@ -377,6 +403,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   result.add quote do:
     macro defineSignature*(components: untyped) =
       let curly = newNimNode(nnkCurly)
+
+      curly.add(ident(toComponentKindName("exists")))
 
       for component in extractComponents(components):
         let componentName = extractComponentName(component)

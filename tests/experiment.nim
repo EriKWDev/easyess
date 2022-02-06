@@ -2,4 +2,4 @@ type
   Test = enum
     tTest
 
-echo sizeof(Test)
+echo sizeof(uint8)

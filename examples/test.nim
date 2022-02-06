@@ -23,6 +23,7 @@ comp:
 
     CustomFlag = enum
       ckTest
+      ckPotato
 
     Name = string
 
@@ -36,14 +37,19 @@ comp:
 # the 'group' that this system belongs to using a string.
 # The system should be a `proc` or `func` that takes an item with a unique name
 # of your chosing
+const
+  systemsGroup = "systems"
+  renderingGroup = "rendering"
 
-sys [Position, Velocity], "systems":
+sys [Position, Velocity], systemsGroup:
   func moveSystem(item: MoveItem) =
+    let (ecs, entity) = item
+
     let oldPosition = position
     position.x += velocity.dx
     position.y += velocity.dy
 
-    debugEcho "Moved entity from ", oldPosition, " to ", position
+    debugEcho "Moved " & ecs.inspect(entity) & " from ", oldPosition, " to ", position
 
 
 # Systems can have side-effects when marked
@@ -54,7 +60,7 @@ sys [Position, Velocity], "systems":
 
 var oneGlobalValue = 1
 
-sys [Sprite], "rendering":
+sys [Sprite], renderingGroup:
   var secondGlobalValue = "Renderingwindow"
 
   proc renderSpriteSystem(item: SpriteItem) =
@@ -62,27 +68,25 @@ sys [Sprite], "rendering":
     inc oneGlobalValue
 
 
-sys [IsDead], "rendering":
+sys [IsDead], systemsGroup:
   proc isDeadSystem(item: DeadItem) =
     echo isDead
 
-sys [CustomFlag], "systems":
+sys [CustomFlag], systemsGroup:
   proc customFlagSystem(item: CustomFlagItem) =
     echo customFlag
 
     case customFlag:
       of ckTest: echo "Hello, World"
+      else: echo "Unsupported type: " & $customFlag
 
-    # item.remove[CustomFlag]()
-    # item.deleteEntity()
+# Once all components and systems have been defined or
+# imported, call `createECS` with a `ECSConfig`. The order
+# matters here and `createECS` has to be called AFTER component
+# and system definitions.
+createECS(ECSConfig(maxEntities: 100))
 
 when isMainModule:
-  # Once all components and systems have been defined or
-  # imported, call `createECS` with a `ECSConfig`. The order
-  # matters here and `createECS` has to be called AFTER component
-  # and system definitions.
-  createECS(ECSConfig(maxEntities: 100))
-
   # The ecs state can be instantiated using `newECS` (created by `createECS`)
   let ecs = newECS()
 
