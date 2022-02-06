@@ -17,6 +17,7 @@ type
     itemType: NimNode
     components: NimNode
     requestsVar: bool
+    entireSystem: NimNode
 
   ECSConfig* = object
     maxEntities*: int
@@ -49,7 +50,7 @@ var
   componentDefinitions {.compileTime.}: seq[ComponentDefinition]
   numberOfComponents {.compileTime.} = 0
 
-  ecsType {.compileTime.} = nnkRefTy.newTree(ident("ECS"))
+  ecsType {.compileTime.} = ident("ECS")
   entityName {.compileTime.} = ident("entity")
   ecsName {.compileTime.} = ident("ecs")
 
@@ -139,7 +140,7 @@ macro sys*(components: openArray[untyped];
                         break
                       continue
 
-                    itemType = c3
+                    itemType = c4
 
           of nnkStmtList:
             systemBody = c2
@@ -152,28 +153,21 @@ macro sys*(components: openArray[untyped];
       else:
         afterSystem.add(c1)
 
-  let systemDefinition: SystemDefinition = (
-    name: systemName,
-    signature: systemsignature,
-    itemType: itemType,
-    components: components,
-    requestsVar: requestsVar
-  )
-
   for component in components:
     systemsignature.add(ident(toComponentKindName($component)))
 
     let
       componentLower = ident(firstLetterLower($component))
       containerName = ident(toContainerName($component))
+      componentIdent = ident($component)
 
     containerTemplates.add quote do:
-      template `componentLower`(): untyped =
+      template `componentLower`(): `componentIdent` =
         `itemName`.`ecsName`.`containerName`[`itemName`.`entityName`.idx]
 
     let identDefs = newNimNode(nnkIdentDefs).add(
       componentLower,
-      ident($component),
+      componentIdent,
       newNimNode(nnkEmpty)
     )
     tupleDef.add(identDefs)
@@ -182,31 +176,41 @@ macro sys*(components: openArray[untyped];
   if key notin systemDefinitions:
     systemDefinitions[key] = @[]
 
-  systemDefinitions[key].add(systemDefinition)
+  let entireSystem = newNimNode(nnkStmtList)
 
-  result = newNimNode(nnkStmtList)
-
-  result.add quote do:
+  entireSystem.add quote do:
     type `itemType`* = tuple[`ecsName`: `ecsType`; `entityName`: Entity]
 
-  result.add quote do:
+  entireSystem.add quote do:
     `beforeSystem`
 
   if isFunc:
-    result.add quote do:
+    entireSystem.add quote do:
       func `systemName`*(`itemName`: `itemType`) {.used.} =
         `containerTemplates`
 
         `systemBody`
   else:
-    result.add quote do:
+    entireSystem.add quote do:
       proc `systemName`*(`itemName`: `itemType`) {.used.} =
+        `containerTemplates`
+
         `systemBody`
 
-  result.add quote do:
+  entireSystem.add quote do:
     `afterSystem`
 
-  when ecsDebugMacros: echo repr(result)
+  let systemDefinition: SystemDefinition = (
+    name: systemName,
+    signature: systemsignature,
+    itemType: itemType,
+    components: components,
+    requestsVar: requestsVar,
+    entireSystem: entireSystem
+  )
+  systemDefinitions[key].add(systemDefinition)
+
+  # when ecsDebugMacros: echo repr(entireSystem)
 
 macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   result = newNimNode(nnkStmtList)
@@ -478,19 +482,22 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       systemsDef = newNimNode(nnkStmtList)
 
     for system in systems:
-      let (name, signature, itemType, _, requestsVar) = system
+      let (name, signature, itemType, _, requestsVar, entireSystem) = system
+
+      result.add quote do:
+        `entireSystem`
 
       let itemConstruction = quote do:
         (`ecsName`, `entityName`)
 
       if not requestsVar:
         systemsDef.add quote do:
-          for `idName` in `ecsName`.queryAll(`signature`):
+          for `entityName` in `ecsName`.queryAll(`signature`):
             let `itemName`: `itemType` = `itemConstruction`
             `name`(`itemname`)
       else:
         systemsDef.add quote do:
-          for `idName` in `ecsName`.queryAll(`signature`):
+          for `entityName` in `ecsName`.queryAll(`signature`):
             var `itemName`: `itemType` = `itemConstruction`
             `name`(`itemName`)
 

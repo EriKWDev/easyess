@@ -1,8 +1,11 @@
 # Easyess Todo
 
 ## 
-- [ ] Define systems after ECS type
-- [ ] Allow components of any type
+- [ ] System Definition
+  - [X] Generate system definitions systems after ECS type
+  - [ ] Generate system definitions in same order as originally defined
+  - [ ] Remove unused data in SystemDefinition container
+- [X] Allow components of any type
 - [ ] Create more entity templates / functions
 
   - ### Global templates

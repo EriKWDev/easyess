@@ -38,12 +38,12 @@ comp:
 # of your chosing
 
 sys [Position, Velocity], "systems":
-  func moveSystem(item: var MoveItem) =
+  func moveSystem(item: MoveItem) =
     let oldPosition = position
     position.x += velocity.dx
     position.y += velocity.dy
 
-    debugEcho "Moved entity from ", oldPosition, " to ", item.position
+    debugEcho "Moved entity from ", oldPosition, " to ", position
 
 
 # Systems can have side-effects when marked
@@ -58,21 +58,20 @@ sys [Sprite], "rendering":
   var secondGlobalValue = "Renderingwindow"
 
   proc renderSpriteSystem(item: SpriteItem) =
-    echo secondGlobalValue, ": Rendering sprite #", item.sprite.id
+    echo secondGlobalValue, ": Rendering sprite #", sprite.id
     inc oneGlobalValue
 
 
 sys [IsDead], "rendering":
   proc isDeadSystem(item: DeadItem) =
-    discard
+    echo isDead
 
 sys [CustomFlag], "systems":
   proc customFlagSystem(item: CustomFlagItem) =
-    echo item.customFlag
+    echo customFlag
 
-    case item.customFlag:
+    case customFlag:
       of ckTest: echo "Hello, World"
-      else: discard
 
     # item.remove[CustomFlag]()
     # item.deleteEntity()
