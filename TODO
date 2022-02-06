@@ -1,0 +1,16 @@
+# Easyess Todo
+
+## 
+- [ ] Define systems after ECS type
+- [ ] Allow components of any type
+- [ ] Create more entity templates / functions
+
+  - ### Global templates
+  - [ ] addComponent[T](ecs: ECS, entity: Entity, c: T)
+  - [ ] removeComponent[T](ecs: ECS, entity: Entity, )
+  - [ ] removeEntity(ecs: ECS, entity: Entity)
+
+  - ### Templates inside each system
+  - [ ] addComponent[T](item: Item, c: T)
+  - [ ] removeComponent[T](item: Item)
+  - [ ] remove(item: Item)
