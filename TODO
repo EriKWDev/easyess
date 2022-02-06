@@ -1,6 +1,4 @@
 # Easyess Todo
-
-## 
 - [ ] System Definition
   - [X] Generate system definitions systems after ECS type
   - [ ] Generate system definitions in same order as originally defined
