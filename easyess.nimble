@@ -7,7 +7,7 @@ srcDir        = "src"
 
 # Tasks
 task docgen, "Generate docs":
-  exec "nim doc2 --index:on -d:nimdoc --outdir:docs src/easyess.nim "
+  exec "nim doc2 --index:on -d:docgen --docCmd:'-d:docgen' --outdir:htmldocs src/easyess.nim"
 
 task tests, "Run tests using both -d:release and without":
   echo "Running tests in debug mode" 

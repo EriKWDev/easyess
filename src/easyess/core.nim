@@ -3,15 +3,29 @@ import macros, strutils, strformat, tables
 export macros, tables
 
 type
-  BaseIDType = uint16
+  BaseIDType* = uint16 ## \
+  ## The integer kind used for IDs. Currently `uint16` is used which
+  ## allows for 65 535 entities alive simultaniously. If more are
+  ## required (or less), change this type manually within your project.
 
-  Entity* = distinct BaseIDType
+  Entity* = distinct BaseIDType ## \
+  ## Entities are simply distinct IDs without any behaviour
+  ## or data attached. Data is added using Components and
+  ## behaviour is added using Systems. See `comp` and `sys` macro
+  ## for more details on those.
+
+  ECSConfig* = object
+    ## A configureation that can be specified statically to
+    ## `createECS` to determine the settings of the `ECS`
+    maxEntities*: int
 
   ComponentDefinition = tuple
+    ## Internal
     name: NimNode
     body: NimNode
 
   SystemDefinition = tuple
+    ## Internal
     name: NimNode
     signature: NimNode
     itemType: NimNode
@@ -19,12 +33,17 @@ type
     requestsVar: bool
     entireSystem: NimNode
 
-  ECSConfig* = object
-    maxEntities*: int
-
 const ecsDebugMacros = false or defined(ecsDebugMacros)
 
-template idx*(entity: Entity): int = entity.int
+template idx*(entity: Entity): int =
+  ## Get the ID of `entity`
+  entity.int
+
+func `$`*(entity: Entity): string =
+  ## Get a string representation of `entity`. Note that this representation cannot
+  ## include the `entity`'s label since it is store within the `ECS`. See `inspect()`
+  ## for a string representation with the label included.
+  result = "Entity(id:" & $entity.idx & ")"
 
 
 func firstLetterLower(word: string): string =
@@ -39,11 +58,6 @@ func toComponentKindName(word: string): string =
 func toContainerName(word: string): string =
   firstLetterLower(word) & "Container"
 
-func `$`*(entity: Entity): string =
-  result = "Entity(id:" & $entity.idx & ")"
-
-func `component`*[T](c: NimNode): (typedesc, NimNode) {.compileTime.} =
-  (T, c)
 
 var
   systemDefinitions {.compileTime.}: Table[string, seq[SystemDefinition]]
@@ -55,6 +69,34 @@ var
   ecsName {.compileTime.} = ident("ecs")
 
 macro comp*(body: untyped) =
+  ## Define one or more components. Components can be of any type, but remember
+  ## that the type's mutability will be reflected in the way the component
+  ## can be accessed and manipulated within systems.
+  ##
+  ## .. code-block:: nim
+  ##
+  ##    import esasyess
+  ##
+  ##    comp:
+  ##      type
+  ##        ExampleComponent* = object ## \
+  ##          ## Note that in order to export you Components
+  ##          ## you, as usual, have to explicitly mark the
+  ##          ## type with `*`
+  ##          data: int
+  ##
+  ##        TupleComponent* = tuple
+  ##          data: string
+  ##          data2: int
+  ##
+  ##        EnumComponent* = enum
+  ##          ecFlagOne
+  ##          ecFlagTwo
+  ##
+  ##        Health* = distinct int
+  ##
+  ##        InternalUnexportedFlag = distinct bool
+
   for typeSectionChild in body:
     for typeDefChild in typeSectionChild:
       typeDefChild.expectKind(nnkTypeDef)
@@ -95,7 +137,39 @@ macro comp*(body: untyped) =
 macro sys*(components: openArray[untyped];
            group: static[string];
            system: untyped) =
-  # Define a system
+  ## Define a system. Systems are defined by what components they wish to work on.
+  ## Components are specified using an openArray of their typedescs, i.e.:
+  ## `[<ComponentOne>, <ComponentTwo>]`. The group is a string to which this system
+  ## belongs to. Once `createECS()` has been called, a run procedure is generated
+  ## for every system group. These groups can then be called using `ecs.run<SystemGroup>()`
+  ##
+  ## Systems are called using an `item`. The item is a `tuple[ecs: ECS, entity: Entity]`. Inside
+  ## each system, templates are generated for accessing the specified components. If a component's
+  ## name was `Position`, a template called `template position(): Position` will be generated
+  ## inside the system's scope.
+  ##
+  ## .. code-block:: nim
+  ##
+  ##    import easyess
+  ##    comp:
+  ##      type
+  ##        Component = object
+  ##          data: int
+  ##
+  ##    sys [Component], "mySystemGroup":
+  ##      proc componentSysem(item: ComponentItem) =
+  ##        let (ecs, entity) = item
+  ##        inc component.data
+  ##
+  ##        when not defined(release):
+  ##          debugEcho ecs.inspect(entity) & $component
+  ##
+  ##    createECS()
+  ##    let
+  ##      ecs = newEcs()
+  ##      entity = ecs.registerEntity("Entity"): (Component(data: 42))
+  ##    ecs.runMySystemGroup()
+
 
   var
     itemName: NimNode
@@ -175,7 +249,7 @@ macro sys*(components: openArray[untyped];
   let entireSystem = newNimNode(nnkStmtList)
 
   entireSystem.add quote do:
-    type `itemType`* = tuple[`ecsName`: `ecsType`; `entityName`: Entity]
+    type `itemType`* = tuple[`ecsName`: `ecsType`; `entityName`: Entity] ## \
 
   entireSystem.add quote do:
     `beforeSystem`
@@ -206,6 +280,12 @@ macro sys*(components: openArray[untyped];
   # when ecsDebugMacros: echo repr(entireSystem)
 
 macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
+  ## Generate all procedures, functions, templates, types and macros for
+  ## all components and systems defined until this point in the code.
+  ## After `createECS()` has been called, it should not be called again.
+  ## You can statically specify a `ECSConfig` with `maxEntities: int` that
+  ## will determine the internal size of all arrays and will be the upper limit
+  ## of the number of entities that can be alive at the same time.
   result = newNimNode(nnkStmtList)
 
   let
@@ -215,9 +295,9 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     signatureType = ident("Signature")
 
     inspectLabelName = ident(toContainerName("ecsInspectLabel"))
+    signaturesName = ident(toContainerName("signature"))
     usedLabelsName = ident("usedLabels")
     componentName = ident("component")
-    entitiesName = ident("entities")
     releaseName = ident("release")
     nextIDName = ident("nextID")
     queryName = ident("query")
@@ -257,7 +337,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
             ident("string")), newEmptyNode()))))
 
   containerDefs.add nnkIdentDefs.newTree(
-    nnkPostfix.newTree(ident("*"), entitiesName),
+    nnkPostfix.newTree(ident("*"), signaturesName),
     nnkBracketExpr.newTree(
       ident("array"),
       newIntLitNode(maxEntities),
@@ -304,22 +384,29 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     type
       `componentKindType`* = `enumType`
 
-      `signatureType`* = set[`componentKindType`]
+      `signatureType`* = set[`componentKindType`] ## \
+      ## The bitset that identifies what Components each entity has.
+      ## For each entity, a Signature is stored within the
+      ## `ECS.signatureContainer` array.
 
     `ecsDef`
 
   result.add quote do:
     func newEcs*(): `ecsType` =
+      ## Create an `ECS` instance. The `ECS` contains arrays of containers
+      ## for every component on every entity. It also contains every `Signature`
+      ## of every entity. The `ECS` is used to create entities, register them
+      ## as well as to modify their components.
       new(result)
 
   result.add quote do:
     func getSignature*(`ecsName`: `ecsType`; `entityName`: Entity): Signature =
-      ## Get a the set of ComponentKind that represents this entity
-      result = `ecsName`.`entitiesName`[`entityName`.idx]
+      ## Get the set of `ComponentKind` that represents `entity`
+      result = `ecsName`.`signaturesName`[`entityName`.idx]
 
   result.add quote do:
     func inspect*(`ecsName`: `ecsType`; `entityName`: Entity): string =
-      ## Get a string representation of `entity` including its label.
+      ## Get a string representation of `entity` including its debug-label.
       ## When `release` is defined, only the entity id is returned as a string.
       when not defined(release):
         result = `ecsName`.`inspectLabelName`[`entityName`.idx] & "["
@@ -330,6 +417,12 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     func newEntity*(`ecsName`: `ecsType`; label: string = "Entity"): Entity =
+      ## Create an empty entity. This function creates an entity with a
+      ## unique ID without any components added. Components can be added
+      ## either using `addComponent()` (recommmended) or manually using
+      ## `ecs.<componentName>Container[entity.idx] = <Component>`. If components
+      ## are added manually, don't forget to manually manage the entity's signature
+      ## as well using `ecs.entities[entity.idx].incl(ck<ComponentName>)`
       when not defined(release):
         var
           n = 0
@@ -342,8 +435,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         `ecsName`.`usedLabelsName`[actualName] = true
 
       var newId = -1
-      for id in `ecsName`.`nextIDName`.idx .. high(`ecsName`.`entitiesName`):
-        if `existsComponentKind` notin `ecsName`.`entitiesName`[id]:
+      for id in `ecsName`.`nextIDName`.idx .. high(`ecsName`.`signaturesName`):
+        if `existsComponentKind` notin `ecsName`.`signaturesName`[id]:
           newId = id
           inc `ecsName`.`nextIDName`
           break
@@ -353,19 +446,26 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
             label & "' but ran out of ID:s. You can increase the number of supported entities by supplying 'ECSConfig(maxEntities: <int>)' to 'createECS()'")
 
       result = newId.Entity
+      `ecsName`.`signaturesName`[newId].incl(`existsComponentKind`)
 
       when not defined release:
         `ecsName`.`inspectLabelName`[result.idx] = actualName
 
   result.add quote do:
-    func register(`ecsName`: `ecsType`;
-                  `entityName`: Entity;
-                  signature: `signatureType` = {}) =
-      `ecsName`.`entitiesName`[`entityName`.idx] = signature
-      `ecsName`.`entitiesName`[`entityName`.idx].incl(`existsComponentKind`)
+    func setSignature(`ecsName`: `ecsType`;
+                      `entityName`: Entity;
+                      signature: `signatureType` = {}) =
+      ## Set the signature of an entity to the specified set of `ComponentKind`.
+      ## It is not adviced to use this function since other functions keep track
+      ## of and manage the entity's signature. For example, `addComponent()` ensures
+      ## that the added component is included in the signature and vice versa for
+      ## `removeComponent()`.
+      `ecsName`.`signaturesName`[`entityName`.idx] = signature
+      `ecsName`.`signaturesName`[`entityName`.idx].incl(`existsComponentKind`)
 
   result.add quote do:
     func extractComponents*(root: NimNode): seq[NimNode] {.compileTime.} =
+      ## Internal
       root.expectKind(nnkStmtList)
       for c1 in root:
         case c1.kind:
@@ -379,6 +479,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     func extractComponentName*(component: NimNode): string {.compileTime.} =
+      ## Internal
       case component.kind:
         of nnkObjConstr:
           for c1 in component:
@@ -402,6 +503,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     macro defineSignature*(components: untyped) =
+      ## Internal
       let curly = newNimNode(nnkCurly)
 
       curly.add(ident(toComponentKindName("exists")))
@@ -419,6 +521,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     func toProperComponent*(component: NimNode): NimNode {.compileTime.} =
+      ## Internal
       case component.kind:
         of nnkObjConstr:
           for c1 in component:
@@ -464,6 +567,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     macro defineComponentAssignments*(`ecsName`: `ecsType`;
                                       `entityName`: untyped;
                                       components: untyped) =
+      ## Internal.
       result = newStmtList()
 
       for component in extractComponents(components):
@@ -486,12 +590,16 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     template registerEntity*(`ecsName`: `ecsType`;
                              label: string;
                              components: untyped): Entity =
+      ## Create an entity with a label and components. This template
+      ## makes it very easy to instantiate an entity with predefined
+      ## components. See `newEntity` to create an entity without components
+
       var entity: Entity
       block:
         defineSignature(components)
 
         entity = ecs.newEntity(label)
-        `ecsName`.register(entity, signature)
+        `ecsName`.setSignature(entity, signature)
 
         `ecsName`.defineComponentAssignments(entity, components)
 
@@ -499,9 +607,19 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     iterator queryAll*(`ecsName`: `ecsType`;
-        `queryName`: `signatureType`): Entity =
-      for id in 0 .. high(`ecsName`.`entitiesName`):
-        if `ecsName`.`entitiesName`[id] >= `queryName`:
+                       `queryName`: `signatureType`): Entity =
+      ## Query and iterate over entities matching the query specified. The
+      ## query must be a set of `ComponentKind` and all entities that have
+      ## a signature that a superset of the query will be returned.
+      ##
+      ## .. code-block:: nim
+      ##    # assuming `Position` and `Velocity` components have been defined
+      ##    # and `createECS()` has been called..
+      ##
+      ##    for entity in ecs.queryAll({ckPosition, ckVelocity}):
+      ##       echo ecs.inspect(entity)
+      for id in 0 .. high(`ecsName`.`signaturesName`):
+        if `ecsName`.`signaturesName`[id] >= `queryName`:
           yield id.Entity
 
   for groupName, systems in systemDefinitions.pairs:

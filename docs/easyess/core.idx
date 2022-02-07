@@ -1,6 +1,0 @@
-Entity	easyess/core.html#Entity	core: Entity	
-Component	easyess/core.html#Component	core: Component	
-ECSConfig	easyess/core.html#ECSConfig	core: ECSConfig	
-comp	easyess/core.html#comp.m,untyped	core: comp(body: untyped)	
-sys	easyess/core.html#sys.m,openArray[untyped],static[string],untyped	core: sys(components: openArray[untyped]; group: static[string]; system: untyped)	
-createECS	easyess/core.html#createECS.m,static[ECSConfig]	core: createECS(config: static[ECSConfig] = ECSConfig(maxEntities: 100))	

@@ -8,6 +8,10 @@
 # Unignore all dirs
 !*/
 
+*.out
+*.exe
+*.bin
+
 bin/
 env.json
 !LICENSE

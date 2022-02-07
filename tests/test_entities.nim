@@ -40,7 +40,7 @@ suite "Entities: " & suiteName:
     let ecs = newEcs()
     var ids: IntSet
 
-    for i in 0 .. high(ecs.entities):
+    for i in 0 .. high(ecs.signatureContainer):
       let currentID = ecs.newEntity("Potato").idx
       check currentID notin ids
       ids.incl(currentID)
@@ -48,7 +48,7 @@ suite "Entities: " & suiteName:
   test "Error when last entity ID used":
     let ecs = newEcs()
 
-    for i in 0 .. high(ecs.entities):
+    for i in 0 .. high(ecs.signatureContainer):
       let currentID = ecs.newEntity("Potato").idx
 
     expect(IndexDefect):
@@ -107,15 +107,15 @@ suite "Entities: " & suiteName:
       ecs = newEcs()
       entity = ecs.registerEntity("Entity"): ()
 
-    check ecs.entities[entity.idx] == {ckExists}
+    check ecs.signatureContainer[entity.idx] == {ckExists}
 
   test "Can register empty entity manually":
     let
       ecs = newEcs()
       entity = ecs.newEntity("Entity")
-    ecs.register(entity, {})
+    ecs.setSignature(entity, {})
 
-    check ecs.entities[entity.idx] == {ckExists}
+    check ecs.signatureContainer[entity.idx] == {ckExists}
 
   test "Can register entity with only one component using template":
     let
@@ -138,7 +138,7 @@ suite "Entities: " & suiteName:
         [DataComponent](data1: 42, data2: "test")
       )
 
-    check ecs.entities[entity.idx] == {ckExists, ckDataFlag, ckDataComponent}
+    check ecs.signatureContainer[entity.idx] == {ckExists, ckDataFlag, ckDataComponent}
     check ecs.dataFlagContainer[entity.idx] == dfThree
     check ecs.dataComponentContainer[entity.idx].data1 == 42
 
@@ -152,7 +152,7 @@ suite "Entities: " & suiteName:
         [DataComponent](data1: 42, data2: "test")
       )
 
-    check ecs.entities[entity.idx] ==
+    check ecs.signatureContainer[entity.idx] ==
       {ckExists, ckDataFlag, ckDataComponent, ckObjectComponent, ckObjectComponent2}
 
     check ecs.objectComponentContainer[entity.idx].data1 == 69
