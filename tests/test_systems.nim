@@ -38,6 +38,7 @@ sys [Position, Velocity], systemsGroup:
     let (ecs, entity) = item
 
     let oldPosition = position
+
     position.x += velocity.dx
     position.y += velocity.dy
 

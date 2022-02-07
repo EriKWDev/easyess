@@ -23,6 +23,12 @@ comp:
       x: float
       y: float
 
+    Pos = tuple[x, y: float]
+
+    Vel = tuple[x, y: float]
+
+    Sprite = uint16
+
 
 createECS()
 
@@ -113,7 +119,6 @@ suite "Entities: " & suiteName:
     let
       ecs = newEcs()
       entity = ecs.newEntity("Entity")
-    ecs.setSignature(entity, {})
 
     check ecs.signatureContainer[entity.idx] == {ckExists}
 
@@ -160,3 +165,63 @@ suite "Entities: " & suiteName:
     check ecs.objectComponent2Container[entity.idx].data4 == 3.141592
     check ecs.dataFlagContainer[entity.idx] == dfThree
     check ecs.dataComponentContainer[entity.idx].data1 == 42
+
+  test "Can create entity by adding components using functions":
+    let
+      ecs = newEcs()
+
+      player = ecs.newEntity("Player")
+      item = (ecs, player)
+
+    item.addPos((50.0, 50.0))
+    item.addVel((10.0, 10.0))
+    item.addSprite(42)
+
+    check ecs.posContainer[player.idx].x == 50.0
+    check ecs.velContainer[player.idx].x == 10.0
+    check ecs.spriteContainer[player.idx] == 42
+
+    check item.pos.x == ecs.posContainer[player.idx].x
+    check item.vel.x == ecs.velContainer[player.idx].x
+    check item.sprite == ecs.spriteContainer[player.idx]
+
+  test "Add components to entity using addComponet and add<ComponentName>":
+    for i in 1 .. 2:
+      let
+        ecs = newECS()
+        entity = ecs.registerEntity("Entity"): (
+          ObjectComponent(data1: 123, data2: "123")
+        )
+
+      check ecs.signatureContainer[entity.idx] == {ckExists, ckObjectComponent}
+      check ecs.objectComponentContainer[entity.idx].data1 == 123
+      check ecs.positionContainer[entity.idx].x == 0.0
+
+      # ecs.addComponent(entity, Position(x: 10.0, y: 10.0))
+      case i:
+        of 1: (ecs, entity).addComponent(Position(x: 10.0, y: 10.0))
+        of 2: (ecs, entity).addPosition(Position(x: 10.0, y: 10.0))
+        else: discard
+
+      check ecs.signatureContainer[entity.idx] == {ckExists, ckObjectComponent, ckPosition}
+      check ecs.positionContainer[entity.idx].x == 10.0
+
+  test "Remove components from entity using removeComponent and remove<ComponentName>":
+    for i in 1 .. 2:
+      let
+        ecs = newECS()
+        entity = ecs.registerEntity("Entity"): (
+          ObjectComponent(data1: 123, data2: "123"),
+          Position(x: 10.0, y: 10.0)
+        )
+
+      check ecs.signatureContainer[entity.idx] == {ckExists, ckObjectComponent, ckPosition}
+      check ecs.objectComponentContainer[entity.idx].data1 == 123
+      check ecs.positionContainer[entity.idx].x == 10.0
+
+      case i:
+      of 1: (ecs, entity).removeComponent(Position)
+      of 2: (ecs, entity).removePosition()
+      else: discard
+
+      check ecs.signatureContainer[entity.idx] == {ckExists, ckObjectComponent}

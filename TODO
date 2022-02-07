@@ -5,13 +5,18 @@
   - [ ] Remove unused data in SystemDefinition container
 - [X] Allow components of any type
 - [ ] Create more entity templates / functions
-
-  - ### Global templates
-  - [ ] addComponent[T](ecs: ECS, entity: Entity, c: T)
-  - [ ] removeComponent[T](ecs: ECS, entity: Entity, )
-  - [ ] removeEntity(ecs: ECS, entity: Entity)
-
-  - ### Templates inside each system
-  - [ ] addComponent[T](item: Item, c: T)
-  - [ ] removeComponent[T](item: Item)
-  - [ ] remove(item: Item)
+  - ### Add/Remove Components
+  - [X] addComponent[T](item: (ECS, Entity), c: T)
+  - [X] removeComponent[T](item: (ECS, Entity), c: typedesc[T])
+  - [X] add<ComponentName>(item: (ECS, Entity), c: ComponentName)
+  - [X] remove<ComponentName>(item: (ECS, Entity))
+  
+  - ### Fetch component
+  - [X] <componentName>(item: (ECS, Entity)): ComponentName
+  
+  - ### Delete Entities
+  - [ ] deleteEntity(item: (ECS, Entity))
+  - [ ] deleteEntity(ecs: ECS, entity: Entity)
+  - [ ] delete(item: (ECS, Entity))
+- [ ] Keep track of current lowest and highest registered Entity in ECS (optimize loops)
+- [ ] 

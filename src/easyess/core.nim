@@ -217,11 +217,14 @@ macro sys*(components: openArray[untyped];
 
     let
       componentLower = ident(firstLetterLower($component))
-      containerName = ident(toContainerName($component))
+      cn = toContainerName($component)
+      containerName = ident(cn)
       componentIdent = ident($component)
+      templateComment = newCommentStmtNode(&"Expands to `ecs.{cn}[entity.idx]`")
 
     containerTemplates.add quote do:
       template `componentLower`(): `componentIdent` =
+        `templateComment`
         `itemName`.`ecsName`.`containerName`[`itemName`.`entityName`.idx]
 
     let identDefs = newNimNode(nnkIdentDefs).add(
@@ -282,6 +285,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
     componentKindType = ident("ECSComponentKind")
     signatureType = ident("Signature")
+    ecsItemType = ident("ECSItem")
 
     inspectLabelName = ident(toContainerName("ecsInspectLabel"))
     signaturesName = ident(toContainerName("signature"))
@@ -408,6 +412,10 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ## Get the set of `ComponentKind` that represents `entity`
       result = `ecsName`.`signaturesName`[`entityName`.idx]
 
+    func getSignature*(`itemName`: (`ecsType`, Entity)): Signature =
+      let (ecs, entity) = `itemName`
+      ecs.getSignature(entity)
+
   result.add quote do:
     func inspect*(`ecsName`: `ecsType`; `entityName`: Entity): string =
       ## Get a string representation of `entity` including its debug-label.
@@ -419,6 +427,10 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       else:
         result = $`entityName`
 
+    func inspect*(`itemName`: (`ecsType`, Entity)): string =
+      let (ecs, entity) = `itemName`
+      ecs.inspect(entity)
+
   result.add quote do:
     func newEntity*(`ecsName`: `ecsType`; label: string = "Entity"): Entity =
       ## Create an empty entity. This function creates an entity with a
@@ -426,7 +438,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ## either using `addComponent()` (recommmended) or manually using
       ## `ecs.<componentName>Container[entity.idx] = <Component>`. If components
       ## are added manually, don't forget to manually manage the entity's signature
-      ## as well using `ecs.entities[entity.idx].incl(ck<ComponentName>)`
+      ## by manipulating `ecs.signatureContainer[entity.idx]` through including
+      ## and excluding `ck<ComponentName>`
       when not defined(release):
         var
           n = 0
@@ -457,8 +470,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     func setSignature*(`ecsName`: `ecsType`;
-                      `entityName`: Entity;
-                      signature: `signatureType` = {}) =
+                       `entityName`: Entity;
+                       signature: Signature = {}) =
       ## Set the signature of an entity to the specified set of `ComponentKind`.
       ## It is not adviced to use this function since other functions keep track
       ## of and manage the entity's signature. For example, `addComponent()` ensures
@@ -466,6 +479,11 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ## `removeComponent()`.
       `ecsName`.`signaturesName`[`entityName`.idx] = signature
       `ecsName`.`signaturesName`[`entityName`.idx].incl(`existsComponentKind`)
+
+    func setSignature*(`itemName`: (`ecsType`, Entity);
+                       signature: Signature): Signature =
+      let (ecs, entity) = `itemName`
+      ecs.setSignature(entity, signature)
 
   result.add quote do:
     func extractComponents*(root: NimNode): seq[NimNode] {.compileTime.} =
@@ -566,6 +584,53 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
         else:
           assert false, "Component " & repr(component) & " can currently not be interpreted"
+
+  for cd in componentDefinitions:
+    let
+      name = $cd.name
+      lowerName = ident(firstLetterLower(name))
+      addName = ident("add" & firstLetterUpper(name))
+      componentType = ident(firstLetterUpper(name))
+      removeName = ident("remove" & firstLetterUpper(name))
+      cn = toContainerName(name)
+      componentContainerName = ident(cn)
+      ck = toComponentKindName(name)
+      componentKind = ident(ck)
+
+      templateComment = newCommentStmtNode(&"Expands to `ecs.{cn}[entity.idx]`")
+      addComment = newCommentStmtNode(&"Add `{name}` to `entity` and update its signature by including `{ck}`")
+      removeComment = newCommentStmtNode(&"Remove `{name}` from `entity` and update its signature by excluding `{ck}`")
+
+    result.add quote do:
+      template `lowerName`*(`itemName`: (`ecsType`, Entity)): `componentType` =
+        `templateComment`
+        `itemName`[0].`componentContainerName`[`itemName`[1].idx]
+
+    result.add quote do:
+      func addComponent*(`itemName`: (`ecsType`, Entity);
+                         `lowerName`: `componentType`) =
+        `addComment`
+        let (`ecsName`, `entityName`) = `itemName`
+        `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
+        `ecsName`.`signaturesName`[entity.idx].incl(`componentKind`)
+
+      func `addName`*(`itemName`: (`ecsType`, Entity);
+                      `lowerName`: `componentType`) =
+        `addComment`
+        let (`ecsName`, `entityName`) = `itemName`
+        `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
+        `ecsName`.`signaturesName`[entity.idx].incl(`componentKind`)
+
+    result.add quote do:
+      func removeComponent*[T: `componentType`](`itemName`: (`ecsType`, Entity);
+                                                t: typedesc[
+                                                    T] = `componentType`) =
+        `removeComment`
+        `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
+
+      func `removeName`*(`itemName`: (`ecsType`, Entity)) =
+        `removeComment`
+        `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
 
   result.add quote do:
     macro defineComponentAssignments*(`ecsName`: `ecsType`;

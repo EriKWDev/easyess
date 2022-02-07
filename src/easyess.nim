@@ -40,20 +40,26 @@ by the `createECS()` macro, these docs were generated with the code below presen
         ExampleComponent = object
           exampleData: int
 
-        OtherExampleComponent = tuple
+        DocumentationComponent = tuple
           otherData: float
 
         ExampleFlag = enum
           efOne
           efTwo
 
-    sys [ExampleComponent, OtherExampleComponent, ExampleFlag], "exampleSystems":
+        ExampleID = uint16
+
+    sys [ExampleComponent, DocumentationComponent, ExampleFlag], "exampleSystems":
       func exampleSystem(item: ExampleItem) =
         let (ecs, entity) = item
 
         discard exampleComponent.exampleData
-        discard otherExampleComponent.otherData
+        discard documentationComponent.otherData
         discard exampleFlag
+
+    sys [ExampleID], "exampleSystems":
+      func exampleIDSystem(item: ExampleIDItem) =
+        discard exampleID
 
     createECS(ECSConfig(maxEntities: 100))
 
@@ -72,19 +78,25 @@ else:
       ExampleComponent = object
         exampleData: int
 
-      OtherExampleComponent = tuple
+      DocumentationComponent = tuple
         otherData: float
 
       ExampleFlag = enum
         efOne
         efTwo
 
-  sys [ExampleComponent, OtherExampleComponent, ExampleFlag], "exampleSystems":
+      ExampleID = uint16
+
+  sys [ExampleComponent, DocumentationComponent, ExampleFlag], "exampleSystems":
     func exampleSystem(item: ExampleItem) =
       let (ecs, entity) = item
 
       discard exampleComponent.exampleData
-      discard otherExampleComponent.otherData
+      discard documentationComponent.otherData
       discard exampleFlag
+
+  sys [ExampleID], "exampleSystems":
+    func exampleIDSystem(item: ExampleIDItem) =
+      discard exampleID
 
   createECS(ECSConfig(maxEntities: 100))

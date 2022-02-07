@@ -113,16 +113,20 @@ window.addEventListener('DOMContentLoaded', main);
 
   signatureContainer*: array[100, Signature]
   exampleComponentContainer*: array[100, ExampleComponent]
-  otherExampleComponentContainer*: array[100, OtherExampleComponent]
-  exampleFlagContainer*: array[100, ExampleFlag]">ECS</a></li>
+  documentationComponentContainer*: array[100, DocumentationComponent]
+  exampleFlagContainer*: array[100, ExampleFlag]
+  exampleIDContainer*: array[100, ExampleID]">ECS</a></li>
   <li><a class="reference" href="#ECSComponentKind"
     title="ECSComponentKind = enum
-  ckExists, ckExampleComponent, ckOtherExampleComponent, ckExampleFlag">ECSComponentKind</a></li>
+  ckExists, ckExampleComponent, ckDocumentationComponent, ckExampleFlag,
+  ckExampleID">ECSComponentKind</a></li>
   <li><a class="reference" href="#ECSConfig"
     title="ECSConfig = object
   maxEntities*: int">ECSConfig</a></li>
   <li><a class="reference" href="#Entity"
     title="Entity = distinct BaseIDType">Entity</a></li>
+  <li><a class="reference" href="#ExampleIDItem"
+    title="ExampleIDItem = tuple[ecs: ECS, entity: Entity]">ExampleIDItem</a></li>
   <li><a class="reference" href="#ExampleItem"
     title="ExampleItem = tuple[ecs: ECS, entity: Entity]">ExampleItem</a></li>
   <li><a class="reference" href="#Signature"
@@ -138,6 +142,44 @@ window.addEventListener('DOMContentLoaded', main);
     title="`$`(entity: Entity): string">`$`(entity: Entity): string</a></li>
 
   </ul>
+  <ul class="simple nested-toc-section">addComponent
+      <li><a class="reference" href="#addComponent%2C%2CDocumentationComponent"
+    title="addComponent(item: (ECS, Entity); documentationComponent: DocumentationComponent)">addComponent(item: (ECS, Entity); documentationComponent: DocumentationComponent)</a></li>
+  <li><a class="reference" href="#addComponent%2C%2CExampleComponent"
+    title="addComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)">addComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)</a></li>
+  <li><a class="reference" href="#addComponent%2C%2CExampleFlag"
+    title="addComponent(item: (ECS, Entity); exampleFlag: ExampleFlag)">addComponent(item: (ECS, Entity); exampleFlag: ExampleFlag)</a></li>
+  <li><a class="reference" href="#addComponent%2C%2CExampleID"
+    title="addComponent(item: (ECS, Entity); exampleID: ExampleID)">addComponent(item: (ECS, Entity); exampleID: ExampleID)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addDocumentationComponent
+      <li><a class="reference" href="#addDocumentationComponent%2C%2CDocumentationComponent"
+    title="addDocumentationComponent(item: (ECS, Entity);
+                          documentationComponent: DocumentationComponent)">addDocumentationComponent(item: (ECS, Entity);
+                          documentationComponent: DocumentationComponent)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addExampleComponent
+      <li><a class="reference" href="#addExampleComponent%2C%2CExampleComponent"
+    title="addExampleComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)">addExampleComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addExampleFlag
+      <li><a class="reference" href="#addExampleFlag%2C%2CExampleFlag"
+    title="addExampleFlag(item: (ECS, Entity); exampleFlag: ExampleFlag)">addExampleFlag(item: (ECS, Entity); exampleFlag: ExampleFlag)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">addExampleID
+      <li><a class="reference" href="#addExampleID%2C%2CExampleID"
+    title="addExampleID(item: (ECS, Entity); exampleID: ExampleID)">addExampleID(item: (ECS, Entity); exampleID: ExampleID)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">exampleIDSystem
+      <li><a class="reference" href="#exampleIDSystem%2CExampleIDItem"
+    title="exampleIDSystem(item: ExampleIDItem)">exampleIDSystem(item: ExampleIDItem)</a></li>
+
+  </ul>
   <ul class="simple nested-toc-section">exampleSystem
       <li><a class="reference" href="#exampleSystem%2CExampleItem"
     title="exampleSystem(item: ExampleItem)">exampleSystem(item: ExampleItem)</a></li>
@@ -145,22 +187,26 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">extractComponentName
       <li><a class="reference" href="#extractComponentName%2CNimNode"
-    title="extractComponentName(component`gensym44: NimNode): string">extractComponentName(component`gensym44: NimNode): string</a></li>
+    title="extractComponentName(component`gensym49: NimNode): string">extractComponentName(component`gensym49: NimNode): string</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">extractComponents
       <li><a class="reference" href="#extractComponents%2CNimNode"
-    title="extractComponents(root`gensym43: NimNode): seq[NimNode]">extractComponents(root`gensym43: NimNode): seq[NimNode]</a></li>
+    title="extractComponents(root`gensym48: NimNode): seq[NimNode]">extractComponents(root`gensym48: NimNode): seq[NimNode]</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">getSignature
       <li><a class="reference" href="#getSignature%2CECS%2CEntity"
     title="getSignature(ecs: ECS; entity: Entity): Signature">getSignature(ecs: ECS; entity: Entity): Signature</a></li>
+  <li><a class="reference" href="#getSignature"
+    title="getSignature(item: (ECS, Entity)): Signature">getSignature(item: (ECS, Entity)): Signature</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">inspect
       <li><a class="reference" href="#inspect%2CECS%2CEntity"
     title="inspect(ecs: ECS; entity: Entity): string">inspect(ecs: ECS; entity: Entity): string</a></li>
+  <li><a class="reference" href="#inspect"
+    title="inspect(item: (ECS, Entity)): string">inspect(item: (ECS, Entity)): string</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">newECS
@@ -170,7 +216,44 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">newEntity
       <li><a class="reference" href="#newEntity%2CECS%2Cstring"
-    title="newEntity(ecs: ECS; label`gensym41: string = &quot;Entity&quot;): Entity">newEntity(ecs: ECS; label`gensym41: string = &quot;Entity&quot;): Entity</a></li>
+    title="newEntity(ecs: ECS; label`gensym46: string = &quot;Entity&quot;): Entity">newEntity(ecs: ECS; label`gensym46: string = &quot;Entity&quot;): Entity</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">removeComponent
+      <li><a class="reference" href="#removeComponent_2"
+    title="removeComponent[T: DocumentationComponent](item: (ECS, Entity);
+    t`gensym57: typedesc[T] = DocumentationComponent)">removeComponent[T: DocumentationComponent](item: (ECS, Entity);
+    t`gensym57: typedesc[T] = DocumentationComponent)</a></li>
+  <li><a class="reference" href="#removeComponent"
+    title="removeComponent[T: ExampleComponent](item: (ECS, Entity); t`gensym54: typedesc[T] = ExampleComponent)">removeComponent[T: ExampleComponent](item: (ECS, Entity); t`gensym54: typedesc[T] = ExampleComponent)</a></li>
+  <li><a class="reference" href="#removeComponent_3"
+    title="removeComponent[T: ExampleFlag](item: (ECS, Entity);
+                                t`gensym60: typedesc[T] = ExampleFlag)">removeComponent[T: ExampleFlag](item: (ECS, Entity);
+                                t`gensym60: typedesc[T] = ExampleFlag)</a></li>
+  <li><a class="reference" href="#removeComponent_4"
+    title="removeComponent[T: ExampleID](item: (ECS, Entity);
+                              t`gensym63: typedesc[T] = ExampleID)">removeComponent[T: ExampleID](item: (ECS, Entity);
+                              t`gensym63: typedesc[T] = ExampleID)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">removeDocumentationComponent
+      <li><a class="reference" href="#removeDocumentationComponent"
+    title="removeDocumentationComponent(item: (ECS, Entity))">removeDocumentationComponent(item: (ECS, Entity))</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">removeExampleComponent
+      <li><a class="reference" href="#removeExampleComponent"
+    title="removeExampleComponent(item: (ECS, Entity))">removeExampleComponent(item: (ECS, Entity))</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">removeExampleFlag
+      <li><a class="reference" href="#removeExampleFlag"
+    title="removeExampleFlag(item: (ECS, Entity))">removeExampleFlag(item: (ECS, Entity))</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">removeExampleID
+      <li><a class="reference" href="#removeExampleID"
+    title="removeExampleID(item: (ECS, Entity))">removeExampleID(item: (ECS, Entity))</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">runExampleSystems
@@ -180,12 +263,14 @@ window.addEventListener('DOMContentLoaded', main);
   </ul>
   <ul class="simple nested-toc-section">setSignature
       <li><a class="reference" href="#setSignature%2CECS%2CEntity%2CSignature"
-    title="setSignature(ecs: ECS; entity: Entity; signature`gensym42: Signature = {})">setSignature(ecs: ECS; entity: Entity; signature`gensym42: Signature = {})</a></li>
+    title="setSignature(ecs: ECS; entity: Entity; signature`gensym47: Signature = {})">setSignature(ecs: ECS; entity: Entity; signature`gensym47: Signature = {})</a></li>
+  <li><a class="reference" href="#setSignature%2C%2CSignature"
+    title="setSignature(item: (ECS, Entity); signature`gensym47: Signature): Signature">setSignature(item: (ECS, Entity); signature`gensym47: Signature): Signature</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">toProperComponent
       <li><a class="reference" href="#toProperComponent%2CNimNode"
-    title="toProperComponent(component`gensym46: NimNode): NimNode">toProperComponent(component`gensym46: NimNode): NimNode</a></li>
+    title="toProperComponent(component`gensym51: NimNode): NimNode">toProperComponent(component`gensym51: NimNode): NimNode</a></li>
 
   </ul>
 
@@ -218,13 +303,13 @@ window.addEventListener('DOMContentLoaded', main);
   <ul class="simple nested-toc-section">defineComponentAssignments
       <li><a class="reference" href="#defineComponentAssignments.m%2CECS%2Cuntyped%2Cuntyped"
     title="defineComponentAssignments(ecs: ECS; entity: untyped;
-                           components`gensym47: untyped)">defineComponentAssignments(ecs: ECS; entity: untyped;
-                           components`gensym47: untyped)</a></li>
+                           components`gensym64: untyped)">defineComponentAssignments(ecs: ECS; entity: untyped;
+                           components`gensym64: untyped)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">defineSignature
       <li><a class="reference" href="#defineSignature.m%2Cuntyped"
-    title="defineSignature(components`gensym45: untyped)">defineSignature(components`gensym45: untyped)</a></li>
+    title="defineSignature(components`gensym50: untyped)">defineSignature(components`gensym50: untyped)</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">sys
@@ -238,14 +323,34 @@ window.addEventListener('DOMContentLoaded', main);
 <li>
   <a class="reference reference-toplevel" href="#18" id="68">Templates</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">idx
+      <ul class="simple nested-toc-section">documentationComponent
+      <li><a class="reference" href="#documentationComponent.t"
+    title="documentationComponent(item: (ECS, Entity)): DocumentationComponent">documentationComponent(item: (ECS, Entity)): DocumentationComponent</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">exampleComponent
+      <li><a class="reference" href="#exampleComponent.t"
+    title="exampleComponent(item: (ECS, Entity)): ExampleComponent">exampleComponent(item: (ECS, Entity)): ExampleComponent</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">exampleFlag
+      <li><a class="reference" href="#exampleFlag.t"
+    title="exampleFlag(item: (ECS, Entity)): ExampleFlag">exampleFlag(item: (ECS, Entity)): ExampleFlag</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">exampleID
+      <li><a class="reference" href="#exampleID.t"
+    title="exampleID(item: (ECS, Entity)): ExampleID">exampleID(item: (ECS, Entity)): ExampleID</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">idx
       <li><a class="reference" href="#idx.t%2CEntity"
     title="idx(entity: Entity): int">idx(entity: Entity): int</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">registerEntity
       <li><a class="reference" href="#registerEntity.t%2CECS%2Cstring%2Cuntyped"
-    title="registerEntity(ecs: ECS; label`gensym48: string; components`gensym48: untyped): Entity">registerEntity(ecs: ECS; label`gensym48: string; components`gensym48: untyped): Entity</a></li>
+    title="registerEntity(ecs: ECS; label`gensym65: string; components`gensym65: untyped): Entity">registerEntity(ecs: ECS; label`gensym65: string; components`gensym65: untyped): Entity</a></li>
 
   </ul>
 
@@ -273,20 +378,26 @@ window.addEventListener('DOMContentLoaded', main);
     <span class="Identifier">ExampleComponent</span> <span class="Operator">=</span> <span class="Keyword">object</span>
       <span class="Identifier">exampleData</span><span class="Punctuation">:</span> <span class="Identifier">int</span>
     
-    <span class="Identifier">OtherExampleComponent</span> <span class="Operator">=</span> <span class="Keyword">tuple</span>
+    <span class="Identifier">DocumentationComponent</span> <span class="Operator">=</span> <span class="Keyword">tuple</span>
       <span class="Identifier">otherData</span><span class="Punctuation">:</span> <span class="Identifier">float</span>
     
     <span class="Identifier">ExampleFlag</span> <span class="Operator">=</span> <span class="Keyword">enum</span>
       <span class="Identifier">efOne</span>
       <span class="Identifier">efTwo</span>
+    
+    <span class="Identifier">ExampleID</span> <span class="Operator">=</span> <span class="Identifier">uint16</span>
 
-<span class="Identifier">sys</span> <span class="Punctuation">[</span><span class="Identifier">ExampleComponent</span><span class="Punctuation">,</span> <span class="Identifier">OtherExampleComponent</span><span class="Punctuation">,</span> <span class="Identifier">ExampleFlag</span><span class="Punctuation">]</span><span class="Punctuation">,</span> <span class="StringLit">&quot;exampleSystems&quot;</span><span class="Punctuation">:</span>
+<span class="Identifier">sys</span> <span class="Punctuation">[</span><span class="Identifier">ExampleComponent</span><span class="Punctuation">,</span> <span class="Identifier">DocumentationComponent</span><span class="Punctuation">,</span> <span class="Identifier">ExampleFlag</span><span class="Punctuation">]</span><span class="Punctuation">,</span> <span class="StringLit">&quot;exampleSystems&quot;</span><span class="Punctuation">:</span>
   <span class="Keyword">func</span> <span class="Identifier">exampleSystem</span><span class="Punctuation">(</span><span class="Identifier">item</span><span class="Punctuation">:</span> <span class="Identifier">ExampleItem</span><span class="Punctuation">)</span> <span class="Operator">=</span>
     <span class="Keyword">let</span> <span class="Punctuation">(</span><span class="Identifier">ecs</span><span class="Punctuation">,</span> <span class="Identifier">entity</span><span class="Punctuation">)</span> <span class="Operator">=</span> <span class="Identifier">item</span>
     
     <span class="Keyword">discard</span> <span class="Identifier">exampleComponent</span><span class="Operator">.</span><span class="Identifier">exampleData</span>
-    <span class="Keyword">discard</span> <span class="Identifier">otherExampleComponent</span><span class="Operator">.</span><span class="Identifier">otherData</span>
+    <span class="Keyword">discard</span> <span class="Identifier">documentationComponent</span><span class="Operator">.</span><span class="Identifier">otherData</span>
     <span class="Keyword">discard</span> <span class="Identifier">exampleFlag</span>
+
+<span class="Identifier">sys</span> <span class="Punctuation">[</span><span class="Identifier">ExampleID</span><span class="Punctuation">]</span><span class="Punctuation">,</span> <span class="StringLit">&quot;exampleSystems&quot;</span><span class="Punctuation">:</span>
+  <span class="Keyword">func</span> <span class="Identifier">exampleIDSystem</span><span class="Punctuation">(</span><span class="Identifier">item</span><span class="Punctuation">:</span> <span class="Identifier">ExampleIDItem</span><span class="Punctuation">)</span> <span class="Operator">=</span>
+    <span class="Keyword">discard</span> <span class="Identifier">exampleID</span>
 
 <span class="Identifier">createECS</span><span class="Punctuation">(</span><span class="Identifier">ECSConfig</span><span class="Punctuation">(</span><span class="Identifier">maxEntities</span><span class="Punctuation">:</span> <span class="DecNumber">100</span><span class="Punctuation">)</span><span class="Punctuation">)</span></pre></p>
   <div class="section" id="7">
@@ -310,8 +421,9 @@ The integer kind used for IDs. Currently <tt class="docutils literal"><span clas
 
   <span class="Identifier">signatureContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a><span class="Other">]</span>
   <span class="Identifier">exampleComponentContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <span class="Identifier">ExampleComponent</span><span class="Other">]</span>
-  <span class="Identifier">otherExampleComponentContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <span class="Identifier">OtherExampleComponent</span><span class="Other">]</span>
+  <span class="Identifier">documentationComponentContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <span class="Identifier">DocumentationComponent</span><span class="Other">]</span>
   <span class="Identifier">exampleFlagContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <span class="Identifier">ExampleFlag</span><span class="Other">]</span>
+  <span class="Identifier">exampleIDContainer</span><span class="Operator">*</span><span class="Other">:</span> <span class="Identifier">array</span><span class="Other">[</span><span class="DecNumber">100</span><span class="Other">,</span> <span class="Identifier">ExampleID</span><span class="Other">]</span>
 </pre></dt>
 <dd>
 
@@ -321,7 +433,8 @@ The integer kind used for IDs. Currently <tt class="docutils literal"><span clas
 </div>
 <div id="ECSComponentKind">
 <dt><pre><a href="easyess.html#ECSComponentKind"><span class="Identifier">ECSComponentKind</span></a> <span class="Other">=</span> <span class="Keyword">enum</span>
-  <span class="Identifier">ckExists</span><span class="Other">,</span> <span class="Identifier">ckExampleComponent</span><span class="Other">,</span> <span class="Identifier">ckOtherExampleComponent</span><span class="Other">,</span> <span class="Identifier">ckExampleFlag</span></pre></dt>
+  <span class="Identifier">ckExists</span><span class="Other">,</span> <span class="Identifier">ckExampleComponent</span><span class="Other">,</span> <span class="Identifier">ckDocumentationComponent</span><span class="Other">,</span> <span class="Identifier">ckExampleFlag</span><span class="Other">,</span>
+  <span class="Identifier">ckExampleID</span></pre></dt>
 <dd>
 
 
@@ -344,6 +457,14 @@ A configureation that can be specified statically to <tt class="docutils literal
 
 
 Entities are simply distinct IDs without any behaviour or data attached. Data is added using Components and behaviour is added using Systems. See <tt class="docutils literal"><span class="pre"><span class="Identifier">comp</span></span></tt> and <tt class="docutils literal"><span class="pre"><span class="Identifier">sys</span></span></tt> macro for more details on those.
+
+</dd>
+</div>
+<div id="ExampleIDItem">
+<dt><pre><a href="easyess.html#ExampleIDItem"><span class="Identifier">ExampleIDItem</span></a> <span class="Other">=</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <span class="Identifier">entity</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">]</span></pre></dt>
+<dd>
+
+
 
 </dd>
 </div>
@@ -382,6 +503,112 @@ Get a string representation of <tt class="docutils literal"><span class="pre"><s
 
 </div>
 
+<div id="addComponent-procs-all">
+<div id="addComponent,,DocumentationComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#addComponent%2C%2CDocumentationComponent"><span class="Identifier">addComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+                  <span class="Identifier">documentationComponent</span><span class="Other">:</span> <span class="Identifier">DocumentationComponent</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">DocumentationComponent</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckDocumentationComponent</span></span></tt>
+
+</dd>
+</div>
+<div id="addComponent,,ExampleComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#addComponent%2C%2CExampleComponent"><span class="Identifier">addComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleComponent</span><span class="Other">:</span> <span class="Identifier">ExampleComponent</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleComponent</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleComponent</span></span></tt>
+
+</dd>
+</div>
+<div id="addComponent,,ExampleFlag">
+<dt><pre><span class="Keyword">func</span> <a href="#addComponent%2C%2CExampleFlag"><span class="Identifier">addComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleFlag</span><span class="Other">:</span> <span class="Identifier">ExampleFlag</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleFlag</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleFlag</span></span></tt>
+
+</dd>
+</div>
+<div id="addComponent,,ExampleID">
+<dt><pre><span class="Keyword">func</span> <a href="#addComponent%2C%2CExampleID"><span class="Identifier">addComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleID</span><span class="Other">:</span> <span class="Identifier">ExampleID</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleID</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleID</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="addDocumentationComponent-procs-all">
+<div id="addDocumentationComponent,,DocumentationComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#addDocumentationComponent%2C%2CDocumentationComponent"><span class="Identifier">addDocumentationComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+                               <span class="Identifier">documentationComponent</span><span class="Other">:</span> <span class="Identifier">DocumentationComponent</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">DocumentationComponent</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckDocumentationComponent</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="addExampleComponent-procs-all">
+<div id="addExampleComponent,,ExampleComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#addExampleComponent%2C%2CExampleComponent"><span class="Identifier">addExampleComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleComponent</span><span class="Other">:</span> <span class="Identifier">ExampleComponent</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleComponent</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleComponent</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="addExampleFlag-procs-all">
+<div id="addExampleFlag,,ExampleFlag">
+<dt><pre><span class="Keyword">func</span> <a href="#addExampleFlag%2C%2CExampleFlag"><span class="Identifier">addExampleFlag</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleFlag</span><span class="Other">:</span> <span class="Identifier">ExampleFlag</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleFlag</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleFlag</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="addExampleID-procs-all">
+<div id="addExampleID,,ExampleID">
+<dt><pre><span class="Keyword">func</span> <a href="#addExampleID%2C%2CExampleID"><span class="Identifier">addExampleID</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">exampleID</span><span class="Other">:</span> <span class="Identifier">ExampleID</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Add <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleID</span></span></tt> to <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by including <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleID</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="exampleIDSystem-procs-all">
+<div id="exampleIDSystem,ExampleIDItem">
+<dt><pre><span class="Keyword">func</span> <a href="#exampleIDSystem%2CExampleIDItem"><span class="Identifier">exampleIDSystem</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <a href="easyess.html#ExampleIDItem"><span class="Identifier">ExampleIDItem</span></a><span class="Other">)</span> {.<span class="Identifier">used</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+
+</div>
+
 <div id="exampleSystem-procs-all">
 <div id="exampleSystem,ExampleItem">
 <dt><pre><span class="Keyword">func</span> <a href="#exampleSystem%2CExampleItem"><span class="Identifier">exampleSystem</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <a href="easyess.html#ExampleItem"><span class="Identifier">ExampleItem</span></a><span class="Other">)</span> {.<span class="Identifier">used</span><span class="Other">,</span> <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
@@ -396,7 +623,7 @@ Get a string representation of <tt class="docutils literal"><span class="pre"><s
 
 <div id="extractComponentName-procs-all">
 <div id="extractComponentName,NimNode">
-<dt><pre><span class="Keyword">func</span> <a href="#extractComponentName%2CNimNode"><span class="Identifier">extractComponentName</span></a><span class="Other">(</span><span class="Identifier">component`gensym44</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">func</span> <a href="#extractComponentName%2CNimNode"><span class="Identifier">extractComponentName</span></a><span class="Other">(</span><span class="Identifier">component`gensym49</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -409,7 +636,7 @@ Internal
 
 <div id="extractComponents-procs-all">
 <div id="extractComponents,NimNode">
-<dt><pre><span class="Keyword">func</span> <a href="#extractComponents%2CNimNode"><span class="Identifier">extractComponents</span></a><span class="Other">(</span><span class="Identifier">root`gensym43</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">func</span> <a href="#extractComponents%2CNimNode"><span class="Identifier">extractComponents</span></a><span class="Other">(</span><span class="Identifier">root`gensym48</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -429,6 +656,14 @@ Get the set of <tt class="docutils literal"><span class="pre"><span class="Ident
 
 </dd>
 </div>
+<div id="getSignature">
+<dt><pre><span class="Keyword">func</span> <a href="#getSignature"><span class="Identifier">getSignature</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
 
 </div>
 
@@ -438,6 +673,14 @@ Get the set of <tt class="docutils literal"><span class="pre"><span class="Ident
 <dd>
 
 Get a string representation of <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> including its debug-label. When <tt class="docutils literal"><span class="pre"><span class="Identifier">release</span></span></tt> is defined, only the entity id is returned as a string.
+
+</dd>
+</div>
+<div id="inspect">
+<dt><pre><span class="Keyword">func</span> <a href="#inspect"><span class="Identifier">inspect</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">string</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
 
 </dd>
 </div>
@@ -458,11 +701,99 @@ Create an <tt class="docutils literal"><span class="pre"><span class="Identifier
 
 <div id="newEntity-procs-all">
 <div id="newEntity,ECS,string">
-<dt><pre><span class="Keyword">func</span> <a href="#newEntity%2CECS%2Cstring"><span class="Identifier">newEntity</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">label`gensym41</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;Entity&quot;</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a> {.
+<dt><pre><span class="Keyword">func</span> <a href="#newEntity%2CECS%2Cstring"><span class="Identifier">newEntity</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">label`gensym46</span><span class="Other">:</span> <span class="Identifier">string</span> <span class="Other">=</span> <span class="StringLit">&quot;Entity&quot;</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
-Create an empty entity. This function creates an entity with a unique ID without any components added. Components can be added either using <tt class="docutils literal"><span class="pre"><span class="Identifier">addComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> (recommmended) or manually using <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.&lt;</span><span class="Identifier">componentName</span><span class="Operator">&gt;</span><span class="Identifier">Container</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Operator">&lt;</span><span class="Identifier">Component</span><span class="Operator">&gt;</span></span></tt>. If components are added manually, don't forget to manually manage the entity's signature as well using <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">entities</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span><span class="Operator">.</span><span class="Identifier">incl</span><span class="Punctuation">(</span><span class="Identifier">ck</span><span class="Operator">&lt;</span><span class="Identifier">ComponentName</span><span class="Operator">&gt;</span><span class="Punctuation">)</span></span></tt>
+Create an empty entity. This function creates an entity with a unique ID without any components added. Components can be added either using <tt class="docutils literal"><span class="pre"><span class="Identifier">addComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> (recommmended) or manually using <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.&lt;</span><span class="Identifier">componentName</span><span class="Operator">&gt;</span><span class="Identifier">Container</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Operator">&lt;</span><span class="Identifier">Component</span><span class="Operator">&gt;</span></span></tt>. If components are added manually, don't forget to manually manage the entity's signature by manipulating <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">signatureContainer</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span></span></tt> through including and excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ck</span><span class="Operator">&lt;</span><span class="Identifier">ComponentName</span><span class="Operator">&gt;</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="removeComponent-procs-all">
+<div id="removeComponent_2">
+<dt><pre><span class="Keyword">func</span> <a href="#removeComponent_2"><span class="Identifier">removeComponent</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">DocumentationComponent</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+    <span class="Identifier">t`gensym57</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">DocumentationComponent</span><span class="Other">)</span></pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">DocumentationComponent</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckDocumentationComponent</span></span></tt>
+
+</dd>
+</div>
+<div id="removeComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#removeComponent"><span class="Identifier">removeComponent</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">ExampleComponent</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+    <span class="Identifier">t`gensym54</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">ExampleComponent</span><span class="Other">)</span></pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleComponent</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleComponent</span></span></tt>
+
+</dd>
+</div>
+<div id="removeComponent_3">
+<dt><pre><span class="Keyword">func</span> <a href="#removeComponent_3"><span class="Identifier">removeComponent</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">ExampleFlag</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+                                     <span class="Identifier">t`gensym60</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">ExampleFlag</span><span class="Other">)</span></pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleFlag</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleFlag</span></span></tt>
+
+</dd>
+</div>
+<div id="removeComponent_4">
+<dt><pre><span class="Keyword">func</span> <a href="#removeComponent_4"><span class="Identifier">removeComponent</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">ExampleID</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span>
+                                   <span class="Identifier">t`gensym63</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">ExampleID</span><span class="Other">)</span></pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleID</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleID</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="removeDocumentationComponent-procs-all">
+<div id="removeDocumentationComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#removeDocumentationComponent"><span class="Identifier">removeDocumentationComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">DocumentationComponent</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckDocumentationComponent</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="removeExampleComponent-procs-all">
+<div id="removeExampleComponent">
+<dt><pre><span class="Keyword">func</span> <a href="#removeExampleComponent"><span class="Identifier">removeExampleComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleComponent</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleComponent</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="removeExampleFlag-procs-all">
+<div id="removeExampleFlag">
+<dt><pre><span class="Keyword">func</span> <a href="#removeExampleFlag"><span class="Identifier">removeExampleFlag</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleFlag</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleFlag</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="removeExampleID-procs-all">
+<div id="removeExampleID">
+<dt><pre><span class="Keyword">func</span> <a href="#removeExampleID"><span class="Identifier">removeExampleID</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Remove <tt class="docutils literal"><span class="pre"><span class="Identifier">ExampleID</span></span></tt> from <tt class="docutils literal"><span class="pre"><span class="Identifier">entity</span></span></tt> and update its signature by excluding <tt class="docutils literal"><span class="pre"><span class="Identifier">ckExampleID</span></span></tt>
 
 </dd>
 </div>
@@ -483,11 +814,20 @@ Create an empty entity. This function creates an entity with a unique ID without
 
 <div id="setSignature-procs-all">
 <div id="setSignature,ECS,Entity,Signature">
-<dt><pre><span class="Keyword">func</span> <a href="#setSignature%2CECS%2CEntity%2CSignature"><span class="Identifier">setSignature</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">entity</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">;</span> <span class="Identifier">signature`gensym42</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a> <span class="Other">=</span> <span class="Other">{</span><span class="Other">}</span><span class="Other">)</span> {.
+<dt><pre><span class="Keyword">func</span> <a href="#setSignature%2CECS%2CEntity%2CSignature"><span class="Identifier">setSignature</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">entity</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">;</span> <span class="Identifier">signature`gensym47</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a> <span class="Other">=</span> <span class="Other">{</span><span class="Other">}</span><span class="Other">)</span> {.
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Set the signature of an entity to the specified set of <tt class="docutils literal"><span class="pre"><span class="Identifier">ComponentKind</span></span></tt>. It is not adviced to use this function since other functions keep track of and manage the entity's signature. For example, <tt class="docutils literal"><span class="pre"><span class="Identifier">addComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> ensures that the added component is included in the signature and vice versa for <tt class="docutils literal"><span class="pre"><span class="Identifier">removeComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt>.
+
+</dd>
+</div>
+<div id="setSignature,,Signature">
+<dt><pre><span class="Keyword">func</span> <a href="#setSignature%2C%2CSignature"><span class="Identifier">setSignature</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">;</span> <span class="Identifier">signature`gensym47</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
 
 </dd>
 </div>
@@ -496,7 +836,7 @@ Set the signature of an entity to the specified set of <tt class="docutils liter
 
 <div id="toProperComponent-procs-all">
 <div id="toProperComponent,NimNode">
-<dt><pre><span class="Keyword">func</span> <a href="#toProperComponent%2CNimNode"><span class="Identifier">toProperComponent</span></a><span class="Other">(</span><span class="Identifier">component`gensym46</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
+<dt><pre><span class="Keyword">func</span> <a href="#toProperComponent%2CNimNode"><span class="Identifier">toProperComponent</span></a><span class="Other">(</span><span class="Identifier">component`gensym51</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> {.<span class="Identifier">compileTime</span><span class="Other">,</span>
     <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
@@ -580,7 +920,7 @@ Generate all procedures, functions, templates, types and macros for all componen
 <div id="defineComponentAssignments-macros-all">
 <div id="defineComponentAssignments.m,ECS,untyped,untyped">
 <dt><pre><span class="Keyword">macro</span> <a href="#defineComponentAssignments.m%2CECS%2Cuntyped%2Cuntyped"><span class="Identifier">defineComponentAssignments</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">entity</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">;</span>
-                                 <span class="Identifier">components`gensym47</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
+                                 <span class="Identifier">components`gensym64</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
 <dd>
 
 Internal.
@@ -592,7 +932,7 @@ Internal.
 
 <div id="defineSignature-macros-all">
 <div id="defineSignature.m,untyped">
-<dt><pre><span class="Keyword">macro</span> <a href="#defineSignature.m%2Cuntyped"><span class="Identifier">defineSignature</span></a><span class="Other">(</span><span class="Identifier">components`gensym45</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
+<dt><pre><span class="Keyword">macro</span> <a href="#defineSignature.m%2Cuntyped"><span class="Identifier">defineSignature</span></a><span class="Other">(</span><span class="Identifier">components`gensym50</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span></pre></dt>
 <dd>
 
 Internal
@@ -639,6 +979,54 @@ Internal
 <h1><a class="toc-backref" href="#18">Templates</a></h1>
 <dl class="item">
 
+<div id="documentationComponent-templates-all">
+<div id="documentationComponent.t">
+<dt><pre><span class="Keyword">template</span> <a href="#documentationComponent.t"><span class="Identifier">documentationComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">DocumentationComponent</span></pre></dt>
+<dd>
+
+Expands to <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">documentationComponentContainer</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="exampleComponent-templates-all">
+<div id="exampleComponent.t">
+<dt><pre><span class="Keyword">template</span> <a href="#exampleComponent.t"><span class="Identifier">exampleComponent</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">ExampleComponent</span></pre></dt>
+<dd>
+
+Expands to <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">exampleComponentContainer</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="exampleFlag-templates-all">
+<div id="exampleFlag.t">
+<dt><pre><span class="Keyword">template</span> <a href="#exampleFlag.t"><span class="Identifier">exampleFlag</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">ExampleFlag</span></pre></dt>
+<dd>
+
+Expands to <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">exampleFlagContainer</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="exampleID-templates-all">
+<div id="exampleID.t">
+<dt><pre><span class="Keyword">template</span> <a href="#exampleID.t"><span class="Identifier">exampleID</span></a><span class="Other">(</span><span class="Identifier">item</span><span class="Other">:</span> <span class="Other">(</span><a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">,</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">ExampleID</span></pre></dt>
+<dd>
+
+Expands to <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">exampleIDContainer</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
 <div id="idx-templates-all">
 <div id="idx.t,Entity">
 <dt><pre><span class="Keyword">template</span> <a href="#idx.t%2CEntity"><span class="Identifier">idx</span></a><span class="Other">(</span><span class="Identifier">entity</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">int</span></pre></dt>
@@ -653,8 +1041,8 @@ Get the ID of <tt class="docutils literal"><span class="pre"><span class="Identi
 
 <div id="registerEntity-templates-all">
 <div id="registerEntity.t,ECS,string,untyped">
-<dt><pre><span class="Keyword">template</span> <a href="#registerEntity.t%2CECS%2Cstring%2Cuntyped"><span class="Identifier">registerEntity</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">label`gensym48</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span>
-                        <span class="Identifier">components`gensym48</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a></pre></dt>
+<dt><pre><span class="Keyword">template</span> <a href="#registerEntity.t%2CECS%2Cstring%2Cuntyped"><span class="Identifier">registerEntity</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">label`gensym65</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">;</span>
+                        <span class="Identifier">components`gensym65</span><span class="Other">:</span> <span class="Identifier">untyped</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a></pre></dt>
 <dd>
 
 Create an entity with a label and components. This template makes it very easy to instantiate an entity with predefined components. See <tt class="docutils literal"><span class="pre"><span class="Identifier">newEntity</span></span></tt> to create an entity without components
@@ -673,7 +1061,7 @@ Create an entity with a label and components. This template makes it very easy t
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-02-07 00:47:09 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-02-07 03:34:22 UTC</small>
       </div>
     </div>
   </div>

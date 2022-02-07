@@ -8,24 +8,50 @@ idx	easyess.html#idx.t,Entity	easyess: idx(entity: Entity): int
 `$`	easyess.html#$,Entity	easyess: `$`(entity: Entity): string	
 ckExists	easyess.html#ckExists	ECSComponentKind.ckExists	
 ckExampleComponent	easyess.html#ckExampleComponent	ECSComponentKind.ckExampleComponent	
-ckOtherExampleComponent	easyess.html#ckOtherExampleComponent	ECSComponentKind.ckOtherExampleComponent	
+ckDocumentationComponent	easyess.html#ckDocumentationComponent	ECSComponentKind.ckDocumentationComponent	
 ckExampleFlag	easyess.html#ckExampleFlag	ECSComponentKind.ckExampleFlag	
+ckExampleID	easyess.html#ckExampleID	ECSComponentKind.ckExampleID	
 ECSComponentKind	easyess.html#ECSComponentKind	easyess: ECSComponentKind	
 Signature	easyess.html#Signature	easyess: Signature	
 ECS	easyess.html#ECS	easyess: ECS	
 newECS	easyess.html#newECS	easyess: newECS(): ECS	
 getSignature	easyess.html#getSignature,ECS,Entity	easyess: getSignature(ecs: ECS; entity: Entity): Signature	
+getSignature	easyess.html#getSignature	easyess: getSignature(item: (ECS, Entity)): Signature	
 inspect	easyess.html#inspect,ECS,Entity	easyess: inspect(ecs: ECS; entity: Entity): string	
-newEntity	easyess.html#newEntity,ECS,string	easyess: newEntity(ecs: ECS; label`gensym41: string = &quot;Entity&quot;): Entity	
-setSignature	easyess.html#setSignature,ECS,Entity,Signature	easyess: setSignature(ecs: ECS; entity: Entity; signature`gensym42: Signature = {})	
-extractComponents	easyess.html#extractComponents,NimNode	easyess: extractComponents(root`gensym43: NimNode): seq[NimNode]	
-extractComponentName	easyess.html#extractComponentName,NimNode	easyess: extractComponentName(component`gensym44: NimNode): string	
-defineSignature	easyess.html#defineSignature.m,untyped	easyess: defineSignature(components`gensym45: untyped)	
-toProperComponent	easyess.html#toProperComponent,NimNode	easyess: toProperComponent(component`gensym46: NimNode): NimNode	
-defineComponentAssignments	easyess.html#defineComponentAssignments.m,ECS,untyped,untyped	easyess: defineComponentAssignments(ecs: ECS; entity: untyped;\n                           components`gensym47: untyped)	
-registerEntity	easyess.html#registerEntity.t,ECS,string,untyped	easyess: registerEntity(ecs: ECS; label`gensym48: string; components`gensym48: untyped): Entity	
+inspect	easyess.html#inspect	easyess: inspect(item: (ECS, Entity)): string	
+newEntity	easyess.html#newEntity,ECS,string	easyess: newEntity(ecs: ECS; label`gensym46: string = &quot;Entity&quot;): Entity	
+setSignature	easyess.html#setSignature,ECS,Entity,Signature	easyess: setSignature(ecs: ECS; entity: Entity; signature`gensym47: Signature = {})	
+setSignature	easyess.html#setSignature,,Signature	easyess: setSignature(item: (ECS, Entity); signature`gensym47: Signature): Signature	
+extractComponents	easyess.html#extractComponents,NimNode	easyess: extractComponents(root`gensym48: NimNode): seq[NimNode]	
+extractComponentName	easyess.html#extractComponentName,NimNode	easyess: extractComponentName(component`gensym49: NimNode): string	
+defineSignature	easyess.html#defineSignature.m,untyped	easyess: defineSignature(components`gensym50: untyped)	
+toProperComponent	easyess.html#toProperComponent,NimNode	easyess: toProperComponent(component`gensym51: NimNode): NimNode	
+exampleComponent	easyess.html#exampleComponent.t	easyess: exampleComponent(item: (ECS, Entity)): ExampleComponent	
+addComponent	easyess.html#addComponent,,ExampleComponent	easyess: addComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)	
+addExampleComponent	easyess.html#addExampleComponent,,ExampleComponent	easyess: addExampleComponent(item: (ECS, Entity); exampleComponent: ExampleComponent)	
+removeComponent	easyess.html#removeComponent	easyess: removeComponent[T: ExampleComponent](item: (ECS, Entity); t`gensym54: typedesc[T] = ExampleComponent)	
+removeExampleComponent	easyess.html#removeExampleComponent	easyess: removeExampleComponent(item: (ECS, Entity))	
+documentationComponent	easyess.html#documentationComponent.t	easyess: documentationComponent(item: (ECS, Entity)): DocumentationComponent	
+addComponent	easyess.html#addComponent,,DocumentationComponent	easyess: addComponent(item: (ECS, Entity); documentationComponent: DocumentationComponent)	
+addDocumentationComponent	easyess.html#addDocumentationComponent,,DocumentationComponent	easyess: addDocumentationComponent(item: (ECS, Entity);\n                          documentationComponent: DocumentationComponent)	
+removeComponent	easyess.html#removeComponent_2	easyess: removeComponent[T: DocumentationComponent](item: (ECS, Entity);\n    t`gensym57: typedesc[T] = DocumentationComponent)	
+removeDocumentationComponent	easyess.html#removeDocumentationComponent	easyess: removeDocumentationComponent(item: (ECS, Entity))	
+exampleFlag	easyess.html#exampleFlag.t	easyess: exampleFlag(item: (ECS, Entity)): ExampleFlag	
+addComponent	easyess.html#addComponent,,ExampleFlag	easyess: addComponent(item: (ECS, Entity); exampleFlag: ExampleFlag)	
+addExampleFlag	easyess.html#addExampleFlag,,ExampleFlag	easyess: addExampleFlag(item: (ECS, Entity); exampleFlag: ExampleFlag)	
+removeComponent	easyess.html#removeComponent_3	easyess: removeComponent[T: ExampleFlag](item: (ECS, Entity);\n                                t`gensym60: typedesc[T] = ExampleFlag)	
+removeExampleFlag	easyess.html#removeExampleFlag	easyess: removeExampleFlag(item: (ECS, Entity))	
+exampleID	easyess.html#exampleID.t	easyess: exampleID(item: (ECS, Entity)): ExampleID	
+addComponent	easyess.html#addComponent,,ExampleID	easyess: addComponent(item: (ECS, Entity); exampleID: ExampleID)	
+addExampleID	easyess.html#addExampleID,,ExampleID	easyess: addExampleID(item: (ECS, Entity); exampleID: ExampleID)	
+removeComponent	easyess.html#removeComponent_4	easyess: removeComponent[T: ExampleID](item: (ECS, Entity);\n                              t`gensym63: typedesc[T] = ExampleID)	
+removeExampleID	easyess.html#removeExampleID	easyess: removeExampleID(item: (ECS, Entity))	
+defineComponentAssignments	easyess.html#defineComponentAssignments.m,ECS,untyped,untyped	easyess: defineComponentAssignments(ecs: ECS; entity: untyped;\n                           components`gensym64: untyped)	
+registerEntity	easyess.html#registerEntity.t,ECS,string,untyped	easyess: registerEntity(ecs: ECS; label`gensym65: string; components`gensym65: untyped): Entity	
 queryAll	easyess.html#queryAll.i,ECS,Signature	easyess: queryAll(ecs: ECS; query: Signature): Entity	
 ExampleItem	easyess.html#ExampleItem	easyess: ExampleItem	
 exampleSystem	easyess.html#exampleSystem,ExampleItem	easyess: exampleSystem(item: ExampleItem)	
+ExampleIDItem	easyess.html#ExampleIDItem	easyess: ExampleIDItem	
+exampleIDSystem	easyess.html#exampleIDSystem,ExampleIDItem	easyess: exampleIDSystem(item: ExampleIDItem)	
 runExampleSystems	easyess.html#runExampleSystems,ECS	easyess: runExampleSystems(ecs: ECS)	
 Note on Docs	easyess.html#note-on-docs	 Note on Docs	
