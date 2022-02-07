@@ -35,17 +35,6 @@ type
 
 const ecsDebugMacros = false or defined(ecsDebugMacros)
 
-template idx*(entity: Entity): int =
-  ## Get the ID of `entity`
-  entity.int
-
-func `$`*(entity: Entity): string =
-  ## Get a string representation of `entity`. Note that this representation cannot
-  ## include the `entity`'s label since it is store within the `ECS`. See `inspect()`
-  ## for a string representation with the label included.
-  result = "Entity(id:" & $entity.idx & ")"
-
-
 func firstLetterLower(word: string): string =
   word[0..0].toLower() & word[1..^1]
 
@@ -310,6 +299,21 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     setBasedOnComponent = newStmtList()
     containerDefs = newNimNode(nnkRecList)
 
+    toStringName = nnkAccQuoted.newTree(
+      newIdentNode("$")
+    )
+
+  result.add quote do:
+    template idx*(`entityName`: Entity): int =
+      ## Get the ID of `entity`
+      `entityName`.int
+
+    func `toStringName`*(`entityName`: Entity): string =
+      ## Get a string representation of `entity`. Note that this representation cannot
+      ## include the `entity`'s label since it is store within the `ECS`. See `inspect()`
+      ## for a string representation with the label included.
+      result = "Entity(id:" & $`entityName`.idx & ")"
+
   containerDefs.add nnkIdentDefs.newTree(
     nnkPostfix.newTree(ident("*"), nextIDName),
     ident("Entity"),
@@ -392,7 +396,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     `ecsDef`
 
   result.add quote do:
-    func newEcs*(): `ecsType` =
+    func newECS*(): `ecsType` =
       ## Create an `ECS` instance. The `ECS` contains arrays of containers
       ## for every component on every entity. It also contains every `Signature`
       ## of every entity. The `ECS` is used to create entities, register them
@@ -452,7 +456,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         `ecsName`.`inspectLabelName`[result.idx] = actualName
 
   result.add quote do:
-    func setSignature(`ecsName`: `ecsType`;
+    func setSignature*(`ecsName`: `ecsType`;
                       `entityName`: Entity;
                       signature: `signatureType` = {}) =
       ## Set the signature of an entity to the specified set of `ComponentKind`.
@@ -648,7 +652,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
             `name`(`itemName`)
 
     result.add quote do:
-      proc `groupIdent`(`ecsName`: `ecsType`) =
+      proc `groupIdent`*(`ecsName`: `ecsType`) =
         `systemsDef`
 
   when ecsDebugMacros: echo repr(result)

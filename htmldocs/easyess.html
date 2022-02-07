@@ -17,7 +17,7 @@
 <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600' rel='stylesheet' type='text/css'/>
 
 <!-- CSS -->
-<title>src/easyess</title>
+<title>easyess</title>
 <link rel="stylesheet" type="text/css" href="nimdoc.out.css">
 
 <script type="text/javascript" src="dochack.js"></script>
@@ -69,7 +69,7 @@ window.addEventListener('DOMContentLoaded', main);
 <body>
 <div class="document" id="documentId">
   <div class="container">
-    <h1 class="title">src/easyess</h1>
+    <h1 class="title">easyess</h1>
     <div class="row">
   <div class="three columns">
   <div class="theme-switch-wrapper">
@@ -163,14 +163,24 @@ window.addEventListener('DOMContentLoaded', main);
     title="inspect(ecs: ECS; entity: Entity): string">inspect(ecs: ECS; entity: Entity): string</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">newEcs
-      <li><a class="reference" href="#newEcs"
-    title="newEcs(): ECS">newEcs(): ECS</a></li>
+  <ul class="simple nested-toc-section">newECS
+      <li><a class="reference" href="#newECS"
+    title="newECS(): ECS">newECS(): ECS</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">newEntity
       <li><a class="reference" href="#newEntity%2CECS%2Cstring"
     title="newEntity(ecs: ECS; label`gensym41: string = &quot;Entity&quot;): Entity">newEntity(ecs: ECS; label`gensym41: string = &quot;Entity&quot;): Entity</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">runExampleSystems
+      <li><a class="reference" href="#runExampleSystems%2CECS"
+    title="runExampleSystems(ecs: ECS)">runExampleSystems(ecs: ECS)</a></li>
+
+  </ul>
+  <ul class="simple nested-toc-section">setSignature
+      <li><a class="reference" href="#setSignature%2CECS%2CEntity%2CSignature"
+    title="setSignature(ecs: ECS; entity: Entity; signature`gensym42: Signature = {})">setSignature(ecs: ECS; entity: Entity; signature`gensym42: Signature = {})</a></li>
 
   </ul>
   <ul class="simple nested-toc-section">toProperComponent
@@ -434,9 +444,9 @@ Get a string representation of <tt class="docutils literal"><span class="pre"><s
 
 </div>
 
-<div id="newEcs-procs-all">
-<div id="newEcs">
-<dt><pre><span class="Keyword">func</span> <a href="#newEcs"><span class="Identifier">newEcs</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<div id="newECS-procs-all">
+<div id="newECS">
+<dt><pre><span class="Keyword">func</span> <a href="#newECS"><span class="Identifier">newECS</span></a><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
 <dd>
 
 Create an <tt class="docutils literal"><span class="pre"><span class="Identifier">ECS</span></span></tt> instance. The <tt class="docutils literal"><span class="pre"><span class="Identifier">ECS</span></span></tt> contains arrays of containers for every component on every entity. It also contains every <tt class="docutils literal"><span class="pre"><span class="Identifier">Signature</span></span></tt> of every entity. The <tt class="docutils literal"><span class="pre"><span class="Identifier">ECS</span></span></tt> is used to create entities, register them as well as to modify their components.
@@ -453,6 +463,31 @@ Create an <tt class="docutils literal"><span class="pre"><span class="Identifier
 <dd>
 
 Create an empty entity. This function creates an entity with a unique ID without any components added. Components can be added either using <tt class="docutils literal"><span class="pre"><span class="Identifier">addComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> (recommmended) or manually using <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.&lt;</span><span class="Identifier">componentName</span><span class="Operator">&gt;</span><span class="Identifier">Container</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span> <span class="Operator">=</span> <span class="Operator">&lt;</span><span class="Identifier">Component</span><span class="Operator">&gt;</span></span></tt>. If components are added manually, don't forget to manually manage the entity's signature as well using <tt class="docutils literal"><span class="pre"><span class="Identifier">ecs</span><span class="Operator">.</span><span class="Identifier">entities</span><span class="Punctuation">[</span><span class="Identifier">entity</span><span class="Operator">.</span><span class="Identifier">idx</span><span class="Punctuation">]</span><span class="Operator">.</span><span class="Identifier">incl</span><span class="Punctuation">(</span><span class="Identifier">ck</span><span class="Operator">&lt;</span><span class="Identifier">ComponentName</span><span class="Operator">&gt;</span><span class="Punctuation">)</span></span></tt>
+
+</dd>
+</div>
+
+</div>
+
+<div id="runExampleSystems-procs-all">
+<div id="runExampleSystems,ECS">
+<dt><pre><span class="Keyword">proc</span> <a href="#runExampleSystems%2CECS"><span class="Identifier">runExampleSystems</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">)</span> {.<span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+
+
+</dd>
+</div>
+
+</div>
+
+<div id="setSignature-procs-all">
+<div id="setSignature,ECS,Entity,Signature">
+<dt><pre><span class="Keyword">func</span> <a href="#setSignature%2CECS%2CEntity%2CSignature"><span class="Identifier">setSignature</span></a><span class="Other">(</span><span class="Identifier">ecs</span><span class="Other">:</span> <a href="easyess.html#ECS"><span class="Identifier">ECS</span></a><span class="Other">;</span> <span class="Identifier">entity</span><span class="Other">:</span> <a href="easyess.html#Entity"><span class="Identifier">Entity</span></a><span class="Other">;</span> <span class="Identifier">signature`gensym42</span><span class="Other">:</span> <a href="easyess.html#Signature"><span class="Identifier">Signature</span></a> <span class="Other">=</span> <span class="Other">{</span><span class="Other">}</span><span class="Other">)</span> {.
+    <span><span class="Other pragmadots">...</span></span><span class="pragmawrap"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span>.}</pre></dt>
+<dd>
+
+Set the signature of an entity to the specified set of <tt class="docutils literal"><span class="pre"><span class="Identifier">ComponentKind</span></span></tt>. It is not adviced to use this function since other functions keep track of and manage the entity's signature. For example, <tt class="docutils literal"><span class="pre"><span class="Identifier">addComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt> ensures that the added component is included in the signature and vice versa for <tt class="docutils literal"><span class="pre"><span class="Identifier">removeComponent</span><span class="Punctuation">(</span><span class="Punctuation">)</span></span></tt>.
 
 </dd>
 </div>
@@ -638,7 +673,7 @@ Create an entity with a label and components. This template makes it very easy t
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2022-02-07 00:07:29 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2022-02-07 00:47:09 UTC</small>
       </div>
     </div>
   </div>
