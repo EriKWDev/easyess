@@ -15,12 +15,6 @@ and being amazed by its performance. I had never really gotten into writing
 more complicated `macros` and `templates` before, and after having had that
 experience I began investigaring them more.
 
-## Documentation
-Please do `nimble docgen` to generate HTML documentation.
-This is a special task which will include some example
-components and systems in order to also show Documentation
-for all of the compileTime-generated procs, funcs, templates and macros.
-
 ## Example
 The minimalistic example in `example/minimal.nim` without comments and detailed explanations looks like the following:
 ```nim
@@ -288,3 +282,23 @@ when isMainModule:
 
   # Try to compile this using `-d:danger` or `-d:release` and notice the difference!
 ```
+
+## Documentation
+Please do `nimble docgen` to generate HTML documentation.
+This is a special task which will include some example
+components and systems in order to also show Documentation
+for all of the compileTime-generated procs, funcs, templates and macros.
+
+## Performance
+While easyess provides more than enough performance for my personal needs, I have not
+done any extensive profiling or heavy optimizations other than the most obvious ones,
+including:
+- All internal 'component containers' are static `array[N, <Component>]`
+- Entity labels are not saved when -d:release and no space is even allocated for them
+- Components of 'atomic' types like enums, integers, chars and bools are supported without any 'Box types'
+
+I want to do a benchmark some time, but I suspect [polymorph](https://github.com/rlipsc/polymorph)
+wins by large marginals compared to easyess.
+
+## License
+Easyess is released under the MIT license. See `LICENSE` for notes on copyright.
