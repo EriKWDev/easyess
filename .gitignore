@@ -13,6 +13,7 @@
 *.bin
 
 bin/
+htmldocs/
 env.json
 !LICENSE
 !README
