@@ -22,43 +22,50 @@
  and flexible setup I recommend the package [polymorph](https://github.com/rlipsc/polymorph).
 
  While the name `easyess` might seem terrible for searchability (and it is..), I still argue
- its usefulness. You can nom create a file named `ecs.nim` within which you can do `import esasyess`
- and call `createECS()` which generates a bunch of code that is exported from the file. You can then
- simply `import ecs` within your other modules without any name conflict with this package.
+ its usefulness. You can nom create a file named `ecs.nim` within which you do `import esasyess`,
+ define all your components and systems and call `createECS <easyess.html#createECS.m,static[ECSConfig]>`_
+ which generates a bunch of code that is exported from the file. You can the simply
+ `import ecs` within your other modules without any name conflict with this package.
 
 Note on Docs
 ============
+Since the toplevel exported parts of `easyess` are just three macros, I thought it much more helpful to provide
+documentation on all the code that is generated at compiletime once you actually use the package within your code.
 
 In order to show all functions, procs, templates and macros that are generated in the end
-by the `createECS()` macro, these docs were generated with the code below present.
+by the `createECS <easyess.html#createECS.m,static[ECSConfig]>`_ macro, these docs were generated with the following code present.
 
 .. code-block:: nim
     import easyess
 
     comp:
       type
-        ExampleComponent = object
-          exampleData: int
+        ExampleComponent* = object ## \
+        ## An example component for documentation purposes
+          data: int
 
-        DocumentationComponent = tuple
-          otherData: float
+        DocumentationComponent* = tuple ## \
+        ## An example component for documentation purposes
+          data: float
 
-        ExampleFlag = enum
+        ExampleFlag* = enum ## \
+        ## An example component for documentation purposes
           efOne
           efTwo
 
-        ExampleID = uint16
+        ExampleID* = uint16 ## \
+        ## An example component for documentation purposes
 
     sys [ExampleComponent, DocumentationComponent, ExampleFlag], "exampleSystems":
-      func exampleSystem(item: ExampleItem) =
+      func exampleSystem(item: Item) =
         let (ecs, entity) = item
 
-        discard exampleComponent.exampleData
-        discard documentationComponent.otherData
+        discard exampleComponent.data
+        discard documentationComponent.data
         discard exampleFlag
 
     sys [ExampleID], "exampleSystems":
-      func exampleIDSystem(item: ExampleIDItem) =
+      func exampleIDSystem(item: Item) =
         discard exampleID
 
     createECS(ECSConfig(maxEntities: 100))
@@ -75,28 +82,32 @@ else:
 
   comp:
     type
-      ExampleComponent = object
-        exampleData: int
+      ExampleComponent* = object ## \
+        ## An example component for documentation purposes
+        data: int
 
-      DocumentationComponent = tuple
-        otherData: float
+      DocumentationComponent* = tuple ## \
+        ## An example component for documentation purposes
+        data: float
 
-      ExampleFlag = enum
+      ExampleFlag* = enum ## \
+        ## An example component for documentation purposes
         efOne
         efTwo
 
-      ExampleID = uint16
+      ExampleID* = uint16 ## \
+        ## An example component for documentation purposes
 
   sys [ExampleComponent, DocumentationComponent, ExampleFlag], "exampleSystems":
-    func exampleSystem(item: ExampleItem) =
+    func exampleSystem(item: Item) =
       let (ecs, entity) = item
 
-      discard exampleComponent.exampleData
-      discard documentationComponent.otherData
+      discard exampleComponent.data
+      discard documentationComponent.data
       discard exampleFlag
 
   sys [ExampleID], "exampleSystems":
-    func exampleIDSystem(item: ExampleIDItem) =
+    func exampleIDSystem(item: Item) =
       discard exampleID
 
   createECS(ECSConfig(maxEntities: 100))

@@ -225,3 +225,37 @@ suite "Entities: " & suiteName:
       else: discard
 
       check ecs.signatureContainer[entity.idx] == {ckExists, ckObjectComponent}
+
+  test "Cannot add component that already exists":
+    let
+      ecs = newECS()
+      entity = ecs.registerEntity("Entity"): (
+        ObjectComponent(data1: 123, data2: "123"),
+      )
+
+    expect(AssertionDefect):
+      (ecs, entity).addObjectComponent(ObjectComponent(data1: 456, data2: "456"))
+    (ecs, entity).addPosition(Position(x: 10.0, y: 10.0))
+
+  test "Cannot remove component that doesn't exists":
+    let
+      ecs = newECS()
+      entity = ecs.registerEntity("Entity"): (
+        ObjectComponent(data1: 123, data2: "123"),
+      )
+
+    expect(AssertionDefect):
+      (ecs, entity).removePosition()
+    (ecs, entity).removeObjectComponent()
+
+  test "Cannot access component that doesn't exists":
+    let
+      ecs = newECS()
+      entity = ecs.registerEntity("Entity"): (
+        ObjectComponent(data1: 123, data2: "123"),
+      )
+
+    expect(AssertionDefect):
+      discard (ecs, entity).position
+
+    discard (ecs, entity).objectComponent

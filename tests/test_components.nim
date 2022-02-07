@@ -15,16 +15,19 @@ createECS()
 const suiteName = when defined(release): "release" else: "debug"
 
 suite "Components: " & suiteName:
+  test "ComponentKind is declared":
+    check declared(ComponentKind)
+
   test "ckExists is a declared":
     check declared(ckExists)
-    check ckExists in {low(ECSComponentKind) .. high(ECSComponentKind)}
+    check ckExists in {low(ComponentKind) .. high(ComponentKind)}
     check ord(ckExists) == 0
 
   test "Number of declared ComponentKind enums matches the number of declared components":
     check declared(ckObjectComponent)
     check declared(ckTestComponent)
 
-    check len(low(ECSComponentKind) .. high(ECSComponentKind)) ==
+    check len(low(ComponentKind) .. high(ComponentKind)) ==
         numberOfComponents + 1 # ckExists...
 
     check ord(ckObjectComponent) == 1

@@ -34,7 +34,7 @@ const
 
 
 sys [Position, Velocity], systemsGroup:
-  func moveSystem(item: MoveItem) =
+  func moveSystem(item: Item) =
     let (ecs, entity) = item
 
     let oldPosition = position
@@ -43,11 +43,11 @@ sys [Position, Velocity], systemsGroup:
     position.y += velocity.dy
 
 sys [Die], systemsGroup:
-  func isDeadSystem(item: DeadItem) =
+  func isDeadSystem(item: Item) =
     discard
 
 sys [CustomFlag], systemsGroup:
-  func customFlagSystem(item: CustomFlagItem) =
+  func customFlagSystem(item: Item) =
     case customFlag:
       of cfTest: customFlag = cfPotato
       else: customFlag = cfTest
@@ -56,7 +56,7 @@ sys [CustomFlag], systemsGroup:
 sys [Sprite], renderingGroup:
   var oneGlobalValue = 0
 
-  proc renderSpriteSystem(item: SpriteItem) =
+  proc renderSpriteSystem(item: Item) =
     inc oneGlobalValue
     sprite = (id: 360)
 

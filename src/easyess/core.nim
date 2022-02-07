@@ -16,7 +16,7 @@ type
 
   ECSConfig* = object
     ## A configureation that can be specified statically to
-    ## `createECS` to determine the settings of the `ECS`
+    ## `createECS <easyess.html#createECS.m,static[ECSConfig]>`_ to determine the settings of the `ECS <easyess.html#ECS>`_
     maxEntities*: int
 
   ComponentDefinition = tuple
@@ -28,9 +28,7 @@ type
     ## Internal
     name: NimNode
     signature: NimNode
-    itemType: NimNode
     components: NimNode
-    requestsVar: bool
     entireSystem: NimNode
 
 const ecsDebugMacros = false or defined(ecsDebugMacros)
@@ -53,14 +51,17 @@ var
   componentDefinitions {.compileTime.}: seq[ComponentDefinition]
   numberOfComponents {.compileTime.} = 0
 
-  ecsType {.compileTime.} = ident("ECS")
   entityName {.compileTime.} = ident("entity")
+  itemType {.compileTime.} = ident("Item")
+  ecsType {.compileTime.} = ident("ECS")
   ecsName {.compileTime.} = ident("ecs")
 
 macro comp*(body: untyped) =
   ## Define one or more components. Components can be of any type, but remember
   ## that the type's mutability will be reflected in the way the component
   ## can be accessed and manipulated within systems.
+  ##
+  ## **Example**
   ##
   ## .. code-block:: nim
   ##
@@ -129,13 +130,15 @@ macro sys*(components: openArray[untyped];
   ## Define a system. Systems are defined by what components they wish to work on.
   ## Components are specified using an openArray of their typedescs, i.e.:
   ## `[<ComponentOne>, <ComponentTwo>]`. The group is a string to which this system
-  ## belongs to. Once `createECS()` has been called, a run procedure is generated
+  ## belongs to. Once `createECS <easyess.html#createECS.m,static[ECSConfig]>`_ has been called, a run procedure is generated
   ## for every system group. These groups can then be called using `ecs.run<SystemGroup>()`
   ##
   ## Systems are called using an `item`. The item is a `tuple[ecs: ECS, entity: Entity]`. Inside
   ## each system, templates are generated for accessing the specified components. If a component's
   ## name was `Position`, a template called `template position(): Position` will be generated
   ## inside the system's scope.
+  ##
+  ## **Example**
   ##
   ## .. code-block:: nim
   ##
@@ -146,7 +149,7 @@ macro sys*(components: openArray[untyped];
   ##          data: int
   ##
   ##    sys [Component], "mySystemGroup":
-  ##      proc componentSysem(item: ComponentItem) =
+  ##      proc componentSysem(item: Item) =
   ##        let (ecs, entity) = item
   ##        inc component.data
   ##
@@ -162,7 +165,6 @@ macro sys*(components: openArray[untyped];
 
   var
     itemName: NimNode
-    itemType: NimNode
 
     systemName: NimNode
     systemBody: NimNode
@@ -173,9 +175,7 @@ macro sys*(components: openArray[untyped];
     tupleDef = newNimNode(nnkTupleTy)
     containerTemplates = newNimNode(nnkStmtList)
 
-  var
-    isFunc = true
-    requestsVar = false
+  var isFunc = true
 
   block doneParsing:
     for c1 in system:
@@ -193,16 +193,6 @@ macro sys*(components: openArray[untyped];
                     if i == 0:
                       itemName = c4
                       continue
-
-                    elif i == 1:
-                      if c4.kind == nnkVarTy:
-                        requestsVar = true
-                        for c5 in c4:
-                          itemType = c5
-                          break
-                        continue
-
-                      itemType = c4
 
             of nnkStmtList:
               systemBody = c2
@@ -241,9 +231,6 @@ macro sys*(components: openArray[untyped];
   let entireSystem = newNimNode(nnkStmtList)
 
   entireSystem.add quote do:
-    type `itemType`* = tuple[`ecsName`: `ecsType`; `entityName`: Entity] ## \
-
-  entireSystem.add quote do:
     `beforeSystem`
 
   if isFunc:
@@ -262,9 +249,7 @@ macro sys*(components: openArray[untyped];
   let systemDefinition: SystemDefinition = (
     name: systemName,
     signature: systemsignature,
-    itemType: itemType,
     components: components,
-    requestsVar: requestsVar,
     entireSystem: entireSystem
   )
   systemDefinitions[key].add(systemDefinition)
@@ -274,7 +259,9 @@ macro sys*(components: openArray[untyped];
 macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   ## Generate all procedures, functions, templates, types and macros for
   ## all components and systems defined until this point in the code.
-  ## After `createECS()` has been called, it should not be called again.
+  ##
+  ## After `createECS <easyess.html#createECS.m,static[ECSConfig]>`_ has been called, it should **NOT** be called again.
+  ##
   ## You can statically specify a `ECSConfig` with `maxEntities: int` that
   ## will determine the internal size of all arrays and will be the upper limit
   ## of the number of entities that can be alive at the same time.
@@ -283,9 +270,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   let
     existsComponentKind = ident(toComponentKindName("exists"))
 
-    componentKindType = ident("ECSComponentKind")
+    componentKindType = ident("ComponentKind")
     signatureType = ident("Signature")
-    ecsItemType = ident("ECSItem")
 
     inspectLabelName = ident(toContainerName("ecsInspectLabel"))
     signaturesName = ident(toContainerName("signature"))
@@ -314,7 +300,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
     func `toStringName`*(`entityName`: Entity): string =
       ## Get a string representation of `entity`. Note that this representation cannot
-      ## include the `entity`'s label since it is store within the `ECS`. See `inspect()`
+      ## include the `entity`'s label since it is store within the `ECS <easyess.html#ECS>`_. See `inspect <easyess.html#inspect,ECS,Entity>`_
       ## for a string representation with the label included.
       result = "Entity(id:" & $`entityName`.idx & ")"
 
@@ -399,17 +385,27 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
     `ecsDef`
 
+    type
+      `itemType`* = tuple[`ecsName`: `ecsType`; `entityName`: Entity] ## \
+      ## An `Item` is a capsule of the `ECS <easyess.html#ECS>`_ and an `Entity <easyess.html#Entity>`_. Most functions and
+      ## templates that follow the pattern `ecs.<function>(entity, <...>)` can
+      ## also be called using `(ecs, entity).<function>(<...>)`. This becomes
+      ## especially useful within systems since an item of this type is provided.
+      ## 
+      ## Components can therefore be accessed using `item.<componentName>`
+      ## within systems. See `sys` macro for more details.
+
   result.add quote do:
     func newECS*(): `ecsType` =
-      ## Create an `ECS` instance. The `ECS` contains arrays of containers
+      ## Create an `ECS <easyess.html#ECS>`_ instance. The `ECS <easyess.html#ECS>`_ contains arrays of containers
       ## for every component on every entity. It also contains every `Signature`
-      ## of every entity. The `ECS` is used to create entities, register them
+      ## of every entity. The `ECS <easyess.html#ECS>`_ is used to create entities, register them
       ## as well as to modify their components.
       new(result)
 
   result.add quote do:
     func getSignature*(`ecsName`: `ecsType`; `entityName`: Entity): Signature =
-      ## Get the set of `ComponentKind` that represents `entity`
+      ## Get the set of `ComponentKind <easyess.html#ComponentKind>`_ that represents `entity`
       result = `ecsName`.`signaturesName`[`entityName`.idx]
 
     func getSignature*(`itemName`: (`ecsType`, Entity)): Signature =
@@ -427,9 +423,13 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       else:
         result = $`entityName`
 
-    func inspect*(`itemName`: (`ecsType`, Entity)): string =
-      let (ecs, entity) = `itemName`
-      ecs.inspect(entity)
+    func inspect*(`itemName`: `itemType`): string =
+      ## same as `ecs.inspect(entity)`
+      `itemName`[0].inspect(`itemName`[1])
+
+    func `toStringName`*(`itemName`: `itemType`): string =
+      ## Same as `item.inspect()` and in turn `ecs.inspect(entity)`
+      result = `itemName`[0].inspect(`itemName`[1])
 
   result.add quote do:
     func newEntity*(`ecsName`: `ecsType`; label: string = "Entity"): Entity =
@@ -598,38 +598,53 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       componentKind = ident(ck)
 
       templateComment = newCommentStmtNode(&"Expands to `ecs.{cn}[entity.idx]`")
-      addComment = newCommentStmtNode(&"Add `{name}` to `entity` and update its signature by including `{ck}`")
-      removeComment = newCommentStmtNode(&"Remove `{name}` from `entity` and update its signature by excluding `{ck}`")
+      addComment = newCommentStmtNode(&"Add `{name} <easyess.html#{name}>`_ to `entity` and update its signature by including `{ck} <easyess.html#ComponentKind>`_")
+      removeComment = newCommentStmtNode(&"Remove `{name} <easyess.html#{name}>`_ from `entity` and update its signature by excluding `{ck} <easyess.html#ComponentKind>`_")
 
     result.add quote do:
       template `lowerName`*(`itemName`: (`ecsType`, Entity)): `componentType` =
         `templateComment`
+        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
+            $`itemName` & "' Does not have a component of type '" & $`name` & "'"
+
         `itemName`[0].`componentContainerName`[`itemName`[1].idx]
 
     result.add quote do:
       func addComponent*(`itemName`: (`ecsType`, Entity);
                          `lowerName`: `componentType`) =
         `addComment`
+        doAssert `componentKind` notin `itemName`.getSignature(), "Entity '" &
+            $`itemName` & "' Already has a component of type '" & $`name` & "'"
+
         let (`ecsName`, `entityName`) = `itemName`
         `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
-        `ecsName`.`signaturesName`[entity.idx].incl(`componentKind`)
+        `ecsName`.`signaturesName`[`entityName`.idx].incl(`componentKind`)
 
       func `addName`*(`itemName`: (`ecsType`, Entity);
                       `lowerName`: `componentType`) =
         `addComment`
+        doAssert `componentKind` notin `itemName`.getSignature(), "Entity '" &
+            $`itemName` & "' Already has a component of type '" & $`name` & "'"
+
         let (`ecsName`, `entityName`) = `itemName`
         `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
-        `ecsName`.`signaturesName`[entity.idx].incl(`componentKind`)
+        `ecsName`.`signaturesName`[`entityName`.idx].incl(`componentKind`)
 
     result.add quote do:
       func removeComponent*[T: `componentType`](`itemName`: (`ecsType`, Entity);
                                                 t: typedesc[
                                                     T] = `componentType`) =
         `removeComment`
+        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
+            $`itemName` & "' Does not have a component of type '" & $`name` & "'"
+
         `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
 
       func `removeName`*(`itemName`: (`ecsType`, Entity)) =
         `removeComment`
+        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
+            $`itemName` & "' Does not have a component of type '" & $`name` & "'"
+
         `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
 
   result.add quote do:
@@ -681,6 +696,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ## query must be a set of `ComponentKind` and all entities that have
       ## a signature that a superset of the query will be returned.
       ##
+      ## **Example**
+      ##
       ## .. code-block:: nim
       ##    # assuming `Position` and `Velocity` components have been defined
       ##    # and `createECS()` has been called..
@@ -697,24 +714,16 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       systemsDef = newNimNode(nnkStmtList)
 
     for system in systems:
-      let (name, signature, itemType, _, requestsVar, entireSystem) = system
+      let (name, signature, _, entireSystem) = system
 
       result.add quote do:
         `entireSystem`
 
-      let itemConstruction = quote do:
-        (`ecsName`, `entityName`)
+      systemsDef.add quote do:
+        for `entityName` in `ecsName`.queryAll(`signature`):
+          let `itemName`: `itemType` = (`ecsName`, `entityName`)
+          `name`(`itemname`)
 
-      if not requestsVar:
-        systemsDef.add quote do:
-          for `entityName` in `ecsName`.queryAll(`signature`):
-            let `itemName`: `itemType` = `itemConstruction`
-            `name`(`itemname`)
-      else:
-        systemsDef.add quote do:
-          for `entityName` in `ecsName`.queryAll(`signature`):
-            var `itemName`: `itemType` = `itemConstruction`
-            `name`(`itemName`)
 
     result.add quote do:
       proc `groupIdent`*(`ecsName`: `ecsType`) =

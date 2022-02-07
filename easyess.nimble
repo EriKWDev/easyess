@@ -16,4 +16,4 @@ task tests, "Run tests using both -d:release and without":
   exec "nimble -d:danger test"
 
 # Dependencies
-requires "nim >= 1.6.2"
+requires "nim >= 1.6.0"
