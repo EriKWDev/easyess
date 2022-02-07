@@ -19,4 +19,5 @@
   - [ ] deleteEntity(ecs: ECS, entity: Entity)
   - [ ] delete(item: (ECS, Entity))
 - [ ] Keep track of current lowest and highest registered Entity in ECS (optimize loops)
+  - [ ] Add above optimization to `queryAll()` and `newEntity()`
 - [ ] Only export component procedures and templates for a given Component if it is marked with *

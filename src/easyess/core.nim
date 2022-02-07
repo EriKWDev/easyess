@@ -300,9 +300,10 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
     func `toStringName`*(`entityName`: Entity): string =
       ## Get a string representation of `entity`. Note that this representation cannot
-      ## include the `entity`'s label since it is store within the `ECS <easyess.html#ECS>`_. See `inspect <easyess.html#inspect,ECS,Entity>`_
-      ## for a string representation with the label included.
-      result = "Entity(id:" & $`entityName`.idx & ")"
+      ## include the `entity`'s label since it is stored within the `ECS <easyess.html#ECS>`_.
+      ## See `inspect <easyess.html#inspect,ECS,Entity>`_ for a string representation
+      ## with the label included.
+      result = $`entityName`.idx
 
   containerDefs.add nnkIdentDefs.newTree(
     nnkPostfix.newTree(ident("*"), nextIDName),
@@ -409,8 +410,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       result = `ecsName`.`signaturesName`[`entityName`.idx]
 
     func getSignature*(`itemName`: (`ecsType`, Entity)): Signature =
-      let (ecs, entity) = `itemName`
-      ecs.getSignature(entity)
+      result = `itemName`[0].`signaturesName`[`itemName`[1].idx]
 
   result.add quote do:
     func inspect*(`ecsName`: `ecsType`; `entityName`: Entity): string =
@@ -691,7 +691,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     iterator queryAll*(`ecsName`: `ecsType`;
-                       `queryName`: `signatureType`): Entity =
+                       `queryName`: `signatureType` = {ckExists}): Entity =
       ## Query and iterate over entities matching the query specified. The
       ## query must be a set of `ComponentKind` and all entities that have
       ## a signature that a superset of the query will be returned.
@@ -704,8 +704,11 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       ##
       ##    for entity in ecs.queryAll({ckPosition, ckVelocity}):
       ##       echo ecs.inspect(entity)
+      var actualQuery = `queryName`
+      actualQuery.incl(ckExists)
+
       for id in 0 .. high(`ecsName`.`signaturesName`):
-        if `ecsName`.`signaturesName`[id] >= `queryName`:
+        if `ecsName`.`signaturesName`[id] >= actualQuery:
           yield id.Entity
 
   for groupName, systems in systemDefinitions.pairs:

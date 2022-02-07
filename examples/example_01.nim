@@ -1,79 +1,4 @@
-<h1 align="center">Easyess</h1>
-<p align="center">"An easy to use ECS... EasyEss?" - Erik</p>
-<p align="center">
-  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests.yaml/badge.svg?branch=main">
-  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests_devel.yaml/badge.svg?branch=main">
-</p>
 
-## About
-First and foremost, if you really want an ECS with great performance
-and lots of thought put into it, this is not for you. I instead point
-you to the amazing [polymorph](https://github.com/rlipsc/polymorph).
-
-Easyess started as a learning project for myself after having used polymorph
-and being amazed by its performance. I had never really gotten into writing
-more complicated `macros` and `templates` before, and after having had that
-experience I began investigaring them more.
-
-## Documentation
-Please do `nimble docgen` to generate HTML documentation.
-This is a special task which will include some example
-components and systems in order to also show Documentation
-for all of the compileTime-generated procs, funcs, templates and macros.
-
-## Example
-The minimalistic example in `example/minimal.nim` without comments and detailed explanations looks like the following:
-```nim
-import easyess
-
-comp:
-  type
-    Position = object
-      x: float
-      y: float
-
-    Velocity = object
-      dx: float
-      dy: float
-
-
-sys [Position, Velocity], "systems":
-  func moveSystem(item: Item) =
-    let
-      (ecs, entity) = item
-      oldPosition = position
-
-    position.y += velocity.dy
-    item.position.x += item.velocity.dx
-
-    when not defined(release):
-      debugEcho "Moved " & ecs.inspect(entity) & " from ", oldPosition, " to ", position
-
-
-createECS(ECSConfig(maxEntities: 100))
-
-when isMainModule:
-  let
-    ecs = newECS()
-    entity1 = ecs.registerEntity("Entity 1"): (
-      Position(x: 0.0, y: 0.0),
-      Velocity(dx: 10.0, dy: -10.0)
-    )
-    entity2 = ecs.newEntity("Entity 2")
-
-  (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
-  (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
-
-  for i in 1 .. 10:
-    ecs.runSystems()
-
-```
-
-This example is taken from `examples/example_01.nim`. It is quite long, but
-includes detailed explanations in the comments and covers basically everything
-that easyess provides.
-
-```nim
 import easyess
 
 
@@ -287,4 +212,3 @@ when isMainModule:
   # template!
 
   # Try to compile this using `-d:danger` or `-d:release` and notice the difference!
-```
