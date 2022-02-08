@@ -45,7 +45,6 @@ func toComponentKindName(word: string): string =
 func toContainerName(word: string): string =
   firstLetterLower(word) & "Container"
 
-
 var
   systemDefinitions {.compileTime.}: Table[string, seq[SystemDefinition]]
   componentDefinitions {.compileTime.}: seq[ComponentDefinition]
