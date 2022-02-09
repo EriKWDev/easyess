@@ -2,9 +2,12 @@
 import easyess
 
 
+type
+  Game = object
+    value: int
+
 # Define components using the `comp` macro. Components can have any type
 # that doesn't use generics.
-
 comp:
   type
     Position = object
@@ -38,7 +41,7 @@ comp:
 # Specify which components are needed using `[Component1, Component2]` and
 # the 'group' that this system belongs to using a string.
 # The system should be a `proc` or `func` that takes an argument of type `Item`
-# The `Item` type is a tuple[ecs: ECS, entity: Entity].
+# The `Item` type is a `tuple[ecs: ECS, entity: Entity]`.
 const
   systemsGroup = "systems"
   renderingGroup = "rendering"
@@ -61,18 +64,27 @@ sys [Position, Velocity], systemsGroup:
 
 # Systems can have side-effects when marked
 # as `proc` and access variables either outside
-# the entire `sys` macro. Variables can also be defined
-# within the `sys` block, but will still be considered
-# global.
+# the entire `sys` macro or 'within' it, but those
+# defined on the inside will still be considered global.
+
+# You can also pass an extra 'Data' parameter to a system
+# by specifying it after the `Item`. You must later provide
+# a variable of that same type when you call the system's group!
 
 var oneGlobalValue = 1
 
 sys [Sprite], renderingGroup:
   var secondGlobalValue = "Renderingwindow"
 
-  proc renderSpriteSystem(item: SpriteItem) =
+  proc renderSpriteSystem(item: Item, game: var Game) =
+    # Note that we request `var Game` here -------^^^^^^^^
+    # That means that when we later call `ecs.runRendering()`,
+    # we will have to supply an extra argument of the same type!
+    # like so: `ecs.runRendering(game)`
+
     echo secondGlobalValue, ": Rendering sprite #", sprite.id
     inc oneGlobalValue
+    inc game.value
 
 
 sys [IsDead], systemsGroup:
@@ -97,6 +109,7 @@ createECS(ECSConfig(maxEntities: 100))
 when isMainModule:
   # The ecs state can be instantiated using `newECS` (created by `createECS`)
   let ecs = newECS()
+  var game =  Game(value: 0)
 
   # Entities can be instantiated either manually  or using the template
   # `registerEntity` which takes a debug label that will be ignored
@@ -177,7 +190,16 @@ when isMainModule:
     ecs.runSystems()
 
   echo "\n == Running \"rendering\" group once == "
-  ecs.runRendering()
+  # Note that we have to pass `game: var Game` here!
+  # Check `renderSpriteSystem` above for details on why ^
+
+  # `game` currently only has a value, but a more useful
+  # usage would be to perhaps have a reference to your
+  # window and/or renderer in the case of a game. That way
+  # you can still write your rendering logic within a System
+  doAssert game.value == 0
+  ecs.runRendering(game)
+  doAssert game.value == 1
 
   # You can also query entities using the iterator `queryAll`.
   # The following will yield all entities with a `Position` component.

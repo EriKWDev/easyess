@@ -1,6 +1,10 @@
 
 import easyess, unittest
 
+
+type
+  Data = int
+
 comp:
   type
     Position = object
@@ -56,10 +60,10 @@ sys [CustomFlag], systemsGroup:
 sys [Sprite], renderingGroup:
   var oneGlobalValue = 0
 
-  proc renderSpriteSystem(item: Item) =
+  proc renderSpriteSystem(item: Item, data: var Data) =
     inc oneGlobalValue
+    inc data
     sprite = (id: 360)
-
 
 
 createECS(ECSConfig(maxEntities: 100))
@@ -92,20 +96,25 @@ suite "Systems: " & suiteName:
         [Sprite](id: 10),
         [CustomFlag]cfTest
       )
+    
+    var data = 20
 
     check ecs.positionContainer[entity.idx].x == 0.0
     check ecs.positionContainer[entity.idx].y == 0.0
     check ecs.customFlagContainer[entity.idx] == cfTest
     check ecs.spriteContainer[entity.idx].id == 10
+    check data == 20
 
     ecs.runSystems()
     check ecs.positionContainer[entity.idx].x == 10.0
     check ecs.positionContainer[entity.idx].y == -10.0
     check ecs.customFlagContainer[entity.idx] == cfPotato
     check ecs.spriteContainer[entity.idx].id == 10
+    check data == 20
 
-    ecs.runRendering()
+    ecs.runRendering(data)
     check ecs.spriteContainer[entity.idx].id == 360
     check ecs.positionContainer[entity.idx].x == 10.0
     check ecs.customFlagContainer[entity.idx] == cfPotato
     check ecs.positionContainer[entity.idx].y == -10.0
+    check data == 21

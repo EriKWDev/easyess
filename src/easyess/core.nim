@@ -30,6 +30,8 @@ type
     signature: NimNode
     components: NimNode
     entireSystem: NimNode
+    dataType: NimNode
+    itemName: NimNode
 
 const ecsDebugMacros = false or defined(ecsDebugMacros)
 
@@ -163,7 +165,9 @@ macro sys*(components: openArray[untyped];
 
 
   var
-    itemName: NimNode
+    itemName: NimNode = newNilLit()
+    dataName: NimNode = newNilLit()
+    dataType: NimNode = newNilLit()
 
     systemName: NimNode
     systemBody: NimNode
@@ -189,9 +193,16 @@ macro sys*(components: openArray[untyped];
               for c3 in c2:
                 if c3.kind == nnkIdentDefs:
                   for i, c4 in c3:
-                    if i == 0:
+                    if i == 0 and itemName.kind == nnkNilLit:
                       itemName = c4
-                      continue
+                      break
+                  
+                    elif i == 0 and dataName.kind == nnkNilLit:
+                      dataName = c4
+                    
+                    elif i == 1 and dataType.kind == nnkNilLit:
+                      dataType = c4
+                      break
 
             of nnkStmtList:
               systemBody = c2
@@ -233,23 +244,35 @@ macro sys*(components: openArray[untyped];
     `beforeSystem`
 
   if isFunc:
-    entireSystem.add quote do:
-      func `systemName`*(`itemName`: `itemType`) {.used.} =
-        `containerTemplates`
-
-        `systemBody`
+    if dataName.kind == nnkNilLit:
+      entireSystem.add quote do:
+        func `systemName`*(`itemName`: `itemType`) =
+          `containerTemplates`
+          `systemBody`
+    else:
+      entireSystem.add quote do:
+        func `systemName`*(`itemName`: `itemType`, `dataName`: `dataType`) =
+          `containerTemplates`
+          `systemBody`
   else:
-    entireSystem.add quote do:
-      proc `systemName`*(`itemName`: `itemType`) {.used.} =
-        `containerTemplates`
-
-        `systemBody`
+    if dataName.kind == nnkNilLit:
+      entireSystem.add quote do:
+        proc `systemName`*(`itemName`: `itemType`) =
+          `containerTemplates`
+          `systemBody`
+    else:
+      entireSystem.add quote do:
+        proc `systemName`*(`itemName`: `itemType`, `dataName`: `dataType`) =
+          `containerTemplates`
+          `systemBody`
 
   let systemDefinition: SystemDefinition = (
     name: systemName,
     signature: systemsignature,
     components: components,
-    entireSystem: entireSystem
+    entireSystem: entireSystem,
+    dataType: dataType,
+    itemName: itemName
   )
   systemDefinitions[key].add(systemDefinition)
 
@@ -496,7 +519,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           of nnkPar:
             for c2 in c1:
               return @[c2]
-          else: doAssert false
+          else: error("Could not extract component of kind '" & $root.kind & "'", root)
 
   result.add quote do:
     func extractComponentName*(component: NimNode): string {.compileTime.} =
@@ -582,7 +605,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
             return nnkDotExpr.newTree(c1, componentIdent)
 
         else:
-          assert false, "Component " & repr(component) & " can currently not be interpreted"
+          error("Component " & repr(component) & " can currently not be interpreted", component)
 
   for cd in componentDefinitions:
     let
@@ -714,22 +737,39 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     let
       groupIdent = ident("run" & firstLetterUpper(groupName))
       systemsDef = newNimNode(nnkStmtList)
+      dataName = ident("data")
+    var groupDataType = newNilLit()
 
     for system in systems:
-      let (name, signature, _, entireSystem) = system
+      let (name, signature, _, entireSystem, dataType, sysItemName) = system
+      if groupDataType.kind == nnkNilLit:
+        groupDataType = dataType
+      else:
+        if dataType.kind != nnkNilLit:
+          doAssert $groupDataType == $dataType, ""
 
       result.add quote do:
         `entireSystem`
 
-      systemsDef.add quote do:
-        for `entityName` in `ecsName`.queryAll(`signature`):
-          let `itemName`: `itemType` = (`ecsName`, `entityName`)
-          `name`(`itemname`)
-
-
-    result.add quote do:
-      proc `groupIdent`*(`ecsName`: `ecsType`) =
-        `systemsDef`
+      if dataType.kind == nnkNilLit:
+        systemsDef.add quote do:
+          for `sysItemName` in `ecsName`.queryAll(`signature`):
+            let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
+            `name`(`itemname`)
+      else:
+        systemsDef.add quote do:
+          for `sysItemName` in `ecsName`.queryAll(`signature`):
+            let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
+            `name`(`itemname`, `dataName`)
+  
+    if groupDataType.kind == nnkNilLit:
+      result.add quote do:
+        proc `groupIdent`*(`ecsName`: `ecsType`) =
+          `systemsDef`
+    else:
+      result.add quote do:
+        proc `groupIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+          `systemsDef`
 
   when ecsDebugMacros: echo repr(result)
 
