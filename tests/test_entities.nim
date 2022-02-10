@@ -42,6 +42,69 @@ suite "Entities: " & suiteName:
 
     check entity.idx == 0
 
+  test "Can remove enetity":
+    let
+      ecs = newEcs()
+      entity = ecs.newEntity()
+
+    check entity.idx == 0
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 0
+
+    ecs.removeEntity(entity)
+
+    check ecs.nextID.idx == 0
+    check ecs.highestID.idx == 0
+  
+  test "Cannot remove entity that doesn't exist":
+    let
+      ecs = newEcs()
+    
+    expect(AssertionDefect):
+      ecs.removeEntity(Entity(12))
+
+
+  test "ECS nextID and highestID gets updated correctly":
+    let ecs = newEcs()
+    
+    check ecs.nextID.idx == 0
+    check ecs.highestID.idx == 0
+
+    let entity00 = ecs.newEntity()
+
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 0
+
+    ecs.removeEntity(entity00)
+
+    check ecs.nextID.idx == 0
+    check ecs.highestID.idx == 0
+
+    let
+      entity10 = ecs.newEntity()
+      entity11 = ecs.newEntity()
+      entity12 = ecs.newEntity()
+      entity13 = ecs.newEntity()
+  
+    check ecs.nextID.idx == 4
+    check ecs.highestID.idx == 3
+
+    ecs.removeEntity(entity11)
+
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 3
+
+    ecs.removeEntity(entity12)
+
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 3
+
+    ecs.removeEntity(entity13)
+
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 0
+
+
   test "Subsequent entities have unique IDs":
     let ecs = newEcs()
     var ids: IntSet
