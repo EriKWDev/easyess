@@ -1,5 +1,5 @@
 # Package
-version       = "0.1.1"
+version       = "0.1.2"
 author        = "ErikWDev Ubuntu"
 description   = "A new awesome nimble package"
 license       = "MIT"
@@ -23,7 +23,6 @@ task tests, "Run tests using both -d:release and without":
 
     if ext == ".nim":
       exec "nim check " & path
-
 
 # Dependencies
 requires "nim >= 1.6.0"

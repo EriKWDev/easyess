@@ -173,7 +173,7 @@ macro sys*(components: openArray[untyped];
   ##    createECS()
   ##    let
   ##      ecs = newEcs()
-  ##      entity = ecs.registerEntity("Entity"): (Component(data: 42))
+  ##      entity = ecs.createEntity("Entity"): (Component(data: 42))
   ##    ecs.runMySystemGroup()
 
 
@@ -498,14 +498,12 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           newId = id
           break
 
-      debugEcho newId
-
       if newId < 0:
         raise newException(IndexDefect, "Tried to instantiate Entity '" &
             label & "' but ran out of ID:s. You can increase the number of supported entities by supplying 'ECSConfig(maxEntities: <int>)' to 'createECS()'")
 
       result = newId.Entity
-      inc `ecsName`.`nextIDName`
+      `ecsName`.`nextIDName` = `ecsName`.`nextIDName` + Entity(1)
       `ecsName`.`highestIDName` = max(result, `ecsName`.`highestIDName`)
 
       `ecsName`.`signaturesName`[newId].incl(`existsComponentKind`)
@@ -515,16 +513,28 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
   result.add quote do:
     func removeEntity*(`ecsName`: `ecsType`; `entityName`: Entity) =
-      doAssert `existsComponentKind` in `ecsName`.`signaturesName`[`entityName`.idx], "Tried to remove Entity that doesn't exist."
+      if `existsComponentKind` notin `ecsName`.`signaturesName`[`entityName`.idx]:
+        {.line: instantiationInfo().}:
+          raise newException(AssertionDefect, "Tried to remove Entity with ID '" & $`entityName`.idx & "' that doesn't exist.")
 
       `ecsName`.`signaturesName`[`entityName`.idx] = {}
       `ecsName`.`nextIDName` = min(`ecsName`.`nextIDName`, `entityName`)
 
+      # If `entityName` is greated than highestID, something is wrong.
+      # If `entityName` is less than highestID, we can deduct that
+      # highestID still exists
+      # so no '[..] or (`entityName` < highestIDName and ckExists notin `ecsName`.`signaturesName`[`highestIDName`.idx])'
+      # is required here.
       if `ecsName`.`highestIDName` == `entityName`:
         var i = `ecsName`.`highestIDName`.idx
         while `existsComponentKind` notin `ecsName`.`signaturesName`[i]:
+          if i == 0: break
           dec i
+        
         `ecsName`.`highestIDName` = Entity(i)
+    
+    template removeEntity(`itemName`: Item) =
+      removeEntity(`itemName`[0], `itemName`[1])
 
   result.add quote do:
     func setSignature*(`ecsName`: `ecsType`;
@@ -555,7 +565,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         of nnkPar:
           for c2 in c1:
             return @[c2]
-        else: error("Could not extract component of kind '" & $root.kind & "'", root)
+        else:
+          error("Could not extract component of kind '" & $c1.kind & "'", root)
 
   result.add quote do:
     func extractComponentName*(component: NimNode): string {.compileTime.} =
@@ -573,7 +584,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
           else: discard
 
-      of nnkCommand:
+      of nnkCommand, nnkCall:
         for c1 in component:
           c1.expectKind(nnkBracket)
           for c2 in c1:
@@ -582,7 +593,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       else: discard
 
   result.add quote do:
-    macro defineSignature*(components: untyped) =
+    macro declareSignature*(components: untyped) =
       ## Internal
       let curly = newNimNode(nnkCurly)
 
@@ -628,7 +639,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         result = nnkDotExpr.newTree(result, componentIdent)
         return result
 
-      of nnkCommand:
+      of nnkCommand, nnkCall:
         var componentIdent: NimNode
 
         for c1 in component:
@@ -663,8 +674,9 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     result.add quote do:
       template `lowerName`*(`itemName`: (`ecsType`, Entity)): `componentType` =
         `templateComment`
-        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
-            $`itemName` & "' Does not have a component of type '" & `name` & "'"
+        if `componentKind` notin `itemName`.getSignature():
+          {.line: instantiationInfo().}:
+            raise newException(AssertionDefect, "Entity '" & $`itemName` & "' Does not have a component of type '" & `name` & "'")
 
         `itemName`[0].`componentContainerName`[`itemName`[1].idx]
 
@@ -672,8 +684,9 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       func addComponent*(`itemName`: (`ecsType`, Entity);
                          `lowerName`: `componentType`) =
         `addComment`
-        doAssert `componentKind` notin `itemName`.getSignature(), "Entity '" &
-            $`itemName` & "' Already has a component of type '" & `name` & "'"
+        if `componentKind` in `itemName`.getSignature():
+          {.line: instantiationInfo().}:
+            raise newException(AssertionDefect, "Entity '" & $`itemName` & "' Already has a component of type '" & `name` & "'")
 
         let (`ecsName`, `entityName`) = `itemName`
         `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
@@ -682,8 +695,9 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       func `addName`*(`itemName`: (`ecsType`, Entity);
                       `lowerName`: `componentType`) =
         `addComment`
-        doAssert `componentKind` notin `itemName`.getSignature(), "Entity '" &
-            $`itemName` & "' Already has a component of type '" & `name` & "'"
+        if `componentKind` in `itemName`.getSignature():
+          {.line: instantiationInfo().}:
+            raise newException(AssertionDefect, "Entity '" & $`itemName` & "' Already has a component of type '" & `name` & "'")
 
         let (`ecsName`, `entityName`) = `itemName`
         `ecsName`.`componentContainerName`[`entityName`.idx] = `lowerName`
@@ -694,15 +708,17 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
                                                 t: typedesc[
                                                     T] = `componentType`) =
         `removeComment`
-        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
-            $`itemName` & "' Does not have a component of type '" & `name` & "'"
+        if `componentKind` notin `itemName`.getSignature():
+          {.line: instantiationInfo().}:
+            raise newException(AssertionDefect, "Entity '" & $`itemName` & "' Does not have a component of type '" & `name` & "'")
 
         `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
 
       func `removeName`*(`itemName`: (`ecsType`, Entity)) =
         `removeComment`
-        doAssert `componentKind` in `itemName`.getSignature(), "Entity '" &
-            $`itemName` & "' Does not have a component of type '" & `name` & "'"
+        if `componentKind` notin `itemName`.getSignature():
+          {.line: instantiationInfo().}:
+            raise newException(AssertionDefect,"Entity '" & $`itemName` & "' Does not have a component of type '" & `name` & "'")
 
         `itemName`[0].`signaturesName`[`itemName`[1].idx].excl(`componentKind`)
 
@@ -730,7 +746,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         result.add a
 
   result.add quote do:
-    template registerEntity*(`ecsName`: `ecsType`;
+    template createEntity*(`ecsName`: `ecsType`;
                              label: string;
                              components: untyped): Entity =
       ## Create an entity with a label and components. This template
@@ -739,7 +755,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
       var entity: Entity
       block:
-        defineSignature(components)
+        declareSignature(components)
 
         entity = ecs.newEntity(label)
         `ecsName`.setSignature(entity, signature)

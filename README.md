@@ -1,8 +1,8 @@
 <h1 align="center">Easyess</h1>
 <p align="center">"An easy to use ECS... <i>EasyEss</i>?" - Erik</p>
 <p align="center">
-  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests.yaml/badge.svg?branch=main">
-  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests_devel.yaml/badge.svg?branch=main">
+  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests.yaml/badge.svg">
+  <img src="https://github.com/EriKWDev/easyess/actions/workflows/unittests_devel.yaml/badge.svg">
 </p>
 
 ## About
@@ -318,10 +318,19 @@ done any extensive profiling or heavy optimizations other than the most obvious 
 including:
 - All internal 'component containers' are static `array[N, <Component>]`
 - Entity labels are not saved when -d:release and no space is even allocated for them
-- Components of 'atomic' types like enums, integers, chars and bools are supported without any 'Box types'
+- Components of smaller types like enums, integers (+ unsigned), chars and bools are supported without any 'Box types'
 
 I want to do a benchmark some time, but I suspect [polymorph](https://github.com/rlipsc/polymorph)
-wins by large marginals compared to easyess.
+wins by large margins compared to easyess.
+
+## Limitations
+Currently there is no way to have components with generic types since internally only one `array[N, T]` is stored.
+This means that only one Kind of `T` can be stored and that would kind of defeat the point of having generics.
+I have to generate an enum for each component as well, and I don't know how that would handle generics.
+
+This is maybe solvable by inheritance or objects utilizing the `case kind of [...]` syntax, but I have not had a need
+to test and use it.
+
 
 ## License
 Easyess is released under the MIT license. See `LICENSE` for notes on copyright.

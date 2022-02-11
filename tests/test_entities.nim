@@ -29,6 +29,8 @@ comp:
 
     Sprite = uint16
 
+    Name = string
+
 
 createECS()
 
@@ -55,6 +57,32 @@ suite "Entities: " & suiteName:
 
     check ecs.nextID.idx == 0
     check ecs.highestID.idx == 0
+    check ckExists notin ecs.signatureContainer[entity.idx]
+  
+  test "Can remove enetity (more)":
+    let
+      ecs = newEcs()
+      entity0 = ecs.newEntity()
+      entity1 = ecs.newEntity()
+      entity2 = ecs.newEntity()
+      entity3 = ecs.newEntity()
+
+    ecs.removeEntity(entity1)
+    ecs.removeEntity(entity2)
+
+    check ecs.nextID.idx == 1
+    check ecs.highestID.idx == 3
+    
+    ecs.removeEntity(entity0)
+
+    check ecs.nextID.idx == 0
+    check ecs.highestID.idx == 3
+
+    ecs.removeEntity(entity3)
+
+    check ecs.nextID.idx == 0
+    check ecs.highestID.idx == 0
+
   
   test "Cannot remove entity that doesn't exist":
     let
@@ -89,7 +117,7 @@ suite "Entities: " & suiteName:
     check ecs.nextID.idx == 4
     check ecs.highestID.idx == 3
 
-    ecs.removeEntity(entity11)
+    (ecs, entity11).removeEntity() # can be called as `Item` as well...
 
     check ecs.nextID.idx == 1
     check ecs.highestID.idx == 3
@@ -174,7 +202,7 @@ suite "Entities: " & suiteName:
   test "Can register empty entity using template":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): ()
+      entity = ecs.createEntity("Entity"): ()
 
     check ecs.signatureContainer[entity.idx] == {ckExists}
 
@@ -188,20 +216,32 @@ suite "Entities: " & suiteName:
   test "Can register entity with only one component using template":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         Position(x: 42.0, y: 0.0)
       )
-      entity2 = ecs.registerEntity("Entity"): (
+      entity2 = ecs.createEntity("Entity"): (
         Position(x: 69.0, y: 0.0),
       )
+      entity3 = ecs.createEntity("Entity"): ([Name]"test")
+      entity4 = ecs.createEntity("Entity"): ([Name]"test",)
+      entity5 = ecs.createEntity("Entity"): (
+        [Name]"test"
+      )
+      entity6 = ecs.createEntity("Entity"): ([DataComponent](data1: 10, data2: "test"))
+      entity7 = ecs.createEntity("Entity"): ([DataComponent](data1: 10, data2: "test"),)
 
     check ecs.positionContainer[entity.idx].x == 42.0
     check ecs.positionContainer[entity2.idx].x == 69.0
+    check (ecs, entity3).name == "test"
+    check (ecs, entity4).name == "test"
+    check (ecs, entity5).name == "test"
+    check (ecs, entity6).dataComponent.data1 == 10
+    check (ecs, entity7).dataComponent.data1 == 10
 
   test "Can register entity using template with non-object components":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         [DataFlag]dfThree,
         [DataComponent](data1: 42, data2: "test")
       )
@@ -213,7 +253,7 @@ suite "Entities: " & suiteName:
   test "Can register entity using template with object component":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         ObjectComponent(data1: 69, data2: "hello"),
         ObjectComponent2(data3: dfTwo, data4: 3.141592),
         [DataFlag]dfThree,
@@ -252,7 +292,7 @@ suite "Entities: " & suiteName:
     for i in 1 .. 2:
       let
         ecs = newECS()
-        entity = ecs.registerEntity("Entity"): (
+        entity = ecs.createEntity("Entity"): (
           ObjectComponent(data1: 123, data2: "123")
         )
 
@@ -273,7 +313,7 @@ suite "Entities: " & suiteName:
     for i in 1 .. 2:
       let
         ecs = newECS()
-        entity = ecs.registerEntity("Entity"): (
+        entity = ecs.createEntity("Entity"): (
           ObjectComponent(data1: 123, data2: "123"),
           Position(x: 10.0, y: 10.0)
         )
@@ -292,7 +332,7 @@ suite "Entities: " & suiteName:
   test "Cannot add component that already exists":
     let
       ecs = newECS()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         ObjectComponent(data1: 123, data2: "123"),
       )
 
@@ -303,7 +343,7 @@ suite "Entities: " & suiteName:
   test "Cannot remove component that doesn't exists":
     let
       ecs = newECS()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         ObjectComponent(data1: 123, data2: "123"),
       )
 
@@ -314,7 +354,7 @@ suite "Entities: " & suiteName:
   test "Cannot access component that doesn't exists":
     let
       ecs = newECS()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         ObjectComponent(data1: 123, data2: "123"),
       )
 
