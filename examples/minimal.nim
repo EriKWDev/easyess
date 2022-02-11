@@ -29,10 +29,11 @@ createECS(ECSConfig(maxEntities: 100))
 when isMainModule:
   let
     ecs = newECS()
-    entity1 = ecs.registerEntity("Entity 1"): (
-      Position(x: 0.0, y: 0.0),
-      Velocity(dx: 10.0, dy: -10.0)
-    )
+    entity2 = ecs.newEntity("test")
+    # entity1 = ecs.createEntity("Entity 1"): (
+    #   Position(x: 0.0, y: 0.0),
+    #   Velocity(dx: 10.0, dy: -10.0)
+    # )
     # entity2 = ecs.newEntity("Entity 2")
 
   # (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))

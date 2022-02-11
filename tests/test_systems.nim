@@ -27,9 +27,11 @@ comp:
 
     Name = string
 
-    Health = distinct int
+    Health = int
 
     Die = bool
+
+    ToBeRemoved = bool
 
 
 const
@@ -65,6 +67,10 @@ sys [Sprite], renderingGroup:
     inc data
     sprite = (id: 360)
 
+sys [ToBeRemoved], systemsGroup:
+  func toBeRemovedSystem(item: Item) =
+    item.removeEntity()
+
 
 createECS(ECSConfig(maxEntities: 100))
 
@@ -74,7 +80,7 @@ suite "Systems: " & suiteName:
   test "Simple system gets executed everytime 'run<SystemGroup>()' is called":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         Position(x: 0.0, y: 0.0),
         Velocity(dx: 10.0, dy: -10.0),
       )
@@ -90,7 +96,7 @@ suite "Systems: " & suiteName:
   test "Can run system group without running other group":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         Position(x: 0.0, y: 0.0),
         Velocity(dx: 10.0, dy: -10.0),
         [Sprite](id: 10),
@@ -118,3 +124,84 @@ suite "Systems: " & suiteName:
     check ecs.customFlagContainer[entity.idx] == cfPotato
     check ecs.positionContainer[entity.idx].y == -10.0
     check data == 21
+  
+  test "A System can remove an entity":
+    let
+      ecs = newECS()
+      entity1 = ecs.createEntity("test"): ([Name]"potato",[Health](100))
+    
+    check (ecs, entity1).health == 100
+
+    ecs.runSystems()
+    for i in 0 .. 100:
+      check (ecs, entity1).health == 100
+    
+    expect(AssertionDefect):
+      discard (ecs, entity1).toBeRemoved 
+
+    (ecs, entity1).addComponent(toBeRemoved=true)
+    check (ecs, entity1).toBeRemoved == true
+
+    ecs.runSystems()
+    expect(AssertionDefect):
+      discard (ecs, entity1).health
+  
+    check ckExists notin (ecs, entity1).getSignature()
+  
+  test "More in-depth entity removal test":
+    let
+      ecs = newECS()
+      entity0 = ecs.createEntity("Entity"): ([Name]"potato",[Health](100))
+      item0 = (ecs, entity0)
+      entity1 = ecs.createEntity("Entity"): ([Name]"potato",[Health](100))
+      item1 = (ecs, entity1)
+      entity2 = ecs.createEntity("Entity"): ([Name]"potato",[Health](100))
+      item2 = (ecs, entity2)
+      entity3 = ecs.createEntity("Entity"): ([Name]"potato",[Health](100))
+      item3 = (ecs, entity3)
+      items = [item0, item1, item2, item3]
+      items12 = [item1, item2]
+      items03 = [item0, item3]
+
+    for i in 0 .. 10:
+      ecs.runSystems()
+    
+    for item in items:
+      check item.name == "potato"
+      check ckExists in item.getSignature()
+    
+    for item in items12:
+      item.addToBeRemoved(true)
+
+    ecs.runSystems()
+
+    for item in items12:
+      expect(AssertionDefect):
+        discard item.name
+      check ckExists notin item.getSignature()
+    
+    check ecs.nextID == 1.Entity
+    check ecs.highestID == 3.Entity
+
+    for item in items03:
+      check item.name == "potato"
+      check ckExists in item.getSignature()
+    
+    item0.addToBeRemoved(true)
+    ecs.runSystems()
+    expect(AssertionDefect):
+      discard item0.name
+    check ckExists notin item0.getSignature()
+
+    check ecs.nextID == 0.Entity
+    check ecs.highestID == 3.Entity
+
+    item3.addToBeRemoved(true)
+    ecs.runSystems()
+    expect(AssertionDefect):
+      discard item3.name
+    check ckExists notin item3.getSignature()
+
+    check ecs.nextID == 0.Entity
+    check ecs.highestID == 0.Entity
+  

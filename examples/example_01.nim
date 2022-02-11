@@ -112,11 +112,11 @@ when isMainModule:
   var game =  Game(value: 0)
 
   # Entities can be instantiated either manually  or using the template
-  # `registerEntity` which takes a debug label that will be ignored
+  # `createEntity` which takes a debug label that will be ignored
   # `when defined(release)`, as well as a tuple of Components
   # For the template to work with non-object components, the type
   # has to be specified within brackets as `[<ComponentName>]<instantiation>`
-  let entity1 = ecs.registerEntity("Entity 1"): (
+  let entity1 = ecs.createEntity("Entity 1"): (
     Position(x: 10.0, y: 0.0),
     Velocity(dx: 1.0, dy: -1.0),
 

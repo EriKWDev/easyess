@@ -3,21 +3,18 @@
   - [X] Generate system definitions systems after ECS type
   - [ ] Generate system definitions in same order as originally defined
   - [ ] Remove unused data in SystemDefinition container
-- [X] Allow components of any type
-- [ ] Create more entity templates / functions
-  - ### Add/Remove Components
+
+- [X] Allow components of any type (Not Generics)
+
+- [X] Create more entity templates / functions
   - [X] addComponent[T](item: (ECS, Entity), c: T)
   - [X] removeComponent[T](item: (ECS, Entity), c: typedesc[T])
   - [X] add<ComponentName>(item: (ECS, Entity), c: ComponentName)
   - [X] remove<ComponentName>(item: (ECS, Entity))
-  
-  - ### Fetch component
   - [X] <componentName>(item: (ECS, Entity)): ComponentName
-  
-  - ### Delete Entities
-  - [ ] deleteEntity(item: (ECS, Entity))
-  - [ ] deleteEntity(ecs: ECS, entity: Entity)
-  - [ ] delete(item: (ECS, Entity))
-- [ ] Keep track of current lowest and highest registered Entity in ECS (optimize loops)
-  - [ ] Add above optimization to `queryAll()` and `newEntity()`
+  - [X] removeEntity(item: (ECS, Entity))
+  - [X] removeEntity(ecs: ECS, entity: Entity)
+  - [X] Keep track of current lowest and highest registered Entity in ECS (optimize loops)
+    - [X] Add above optimization to `queryAll()` and `newEntity()`
+
 - [ ] Only export component procedures and templates for a given Component if it is marked with *
