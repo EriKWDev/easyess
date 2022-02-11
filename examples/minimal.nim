@@ -33,10 +33,10 @@ when isMainModule:
       Position(x: 0.0, y: 0.0),
       Velocity(dx: 10.0, dy: -10.0)
     )
-    entity2 = ecs.newEntity("Entity 2")
+    # entity2 = ecs.newEntity("Entity 2")
 
-  (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
-  (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
+  # (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
+  # (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
 
-  for i in 1 .. 10:
-    ecs.runSystems()
+  # for i in 1 .. 10:
+  #   ecs.runSystems()

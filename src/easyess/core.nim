@@ -209,10 +209,10 @@ macro sys*(components: openArray[untyped];
                   if i == 0 and itemName.kind == nnkNilLit:
                     itemName = c4
                     break
-                
+
                   elif i == 0 and dataName.kind == nnkNilLit:
                     dataName = c4
-                  
+
                   elif i == 1 and dataType.kind == nnkNilLit:
                     dataType = c4
                     break
@@ -264,7 +264,7 @@ macro sys*(components: openArray[untyped];
           `systemBody`
     else:
       entireSystem.add quote do:
-        func `systemName`*(`itemName`: `itemType`, `dataName`: `dataType`) =
+        func `systemName`*(`itemName`: `itemType`; `dataName`: `dataType`) =
           `containerTemplates`
           `systemBody`
   else:
@@ -275,7 +275,7 @@ macro sys*(components: openArray[untyped];
           `systemBody`
     else:
       entireSystem.add quote do:
-        proc `systemName`*(`itemName`: `itemType`, `dataName`: `dataType`) =
+        proc `systemName`*(`itemName`: `itemType`; `dataName`: `dataType`) =
           `containerTemplates`
           `systemBody`
 
@@ -345,7 +345,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
     nnkPostfix.newTree(ident("*"), nextIDName),
     ident("Entity"),
     newEmptyNode())
-  
+
   containerDefs.add nnkIdentDefs.newTree(
     nnkPostfix.newTree(ident("*"), highestIDName),
     ident("Entity"),
@@ -498,6 +498,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           newId = id
           break
 
+      debugEcho newId
+
       if newId < 0:
         raise newException(IndexDefect, "Tried to instantiate Entity '" &
             label & "' but ran out of ID:s. You can increase the number of supported entities by supplying 'ECSConfig(maxEntities: <int>)' to 'createECS()'")
@@ -512,7 +514,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
         `ecsName`.`inspectLabelName`[newId] = actualName
 
   result.add quote do:
-    func removeEntity*(`ecsName`: `ecsType`, `entityName`: Entity) =
+    func removeEntity*(`ecsName`: `ecsType`; `entityName`: Entity) =
       doAssert `existsComponentKind` in `ecsName`.`signaturesName`[`entityName`.idx], "Tried to remove Entity that doesn't exist."
 
       `ecsName`.`signaturesName`[`entityName`.idx] = {}
@@ -639,7 +641,8 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           return nnkDotExpr.newTree(c1, componentIdent)
 
       else:
-        error("Component " & repr(component) & " can currently not be interpreted", component)
+        error("Component " & repr(component) &
+            " can currently not be interpreted", component)
 
   for cd in componentDefinitions:
     let
@@ -740,7 +743,6 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
         entity = ecs.newEntity(label)
         `ecsName`.setSignature(entity, signature)
-
         `ecsName`.defineComponentAssignments(entity, components)
 
       entity
@@ -795,14 +797,14 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
           for `sysItemName` in `ecsName`.queryAll(`signature`):
             let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
             `name`(`itemname`, `dataName`)
-  
+
     if groupDataType.kind == nnkNilLit:
       result.add quote do:
         proc `groupIdent`*(`ecsName`: `ecsType`) =
           `systemsDef`
     else:
       result.add quote do:
-        proc `groupIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+        proc `groupIdent`*(`ecsName`: `ecsType`; `dataName`: `groupDataType`) =
           `systemsDef`
 
   when ecsDebugMacros: echo repr(result)
