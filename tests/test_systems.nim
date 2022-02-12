@@ -205,3 +205,44 @@ suite "Systems: " & suiteName:
     check ecs.nextID == 0.Entity
     check ecs.highestID == 0.Entity
   
+  test "Can run systems individually, regardless of group":
+    let
+      ecs = newEcs()
+      entity = ecs.registerEntity("Entity"): (
+        Position(x: 0.0, y: 0.0),
+        Velocity(dx: 10.0, dy: -10.0),
+        [Sprite](id: 10),
+        [CustomFlag]cfTest
+      )
+      item = (ecs, entity)
+    
+    var data = 20
+    check item.position.x == 0.0
+    check item.position.y == 0.0
+    check item.customFlag == cfTest
+    check item.sprite.id == 10
+    check data == 20
+  
+    for theEntity in ecs.queryAll({ckPosition, ckVelocity}):
+      let theItem = (ecs, theEntity)
+      moveSystem(theItem)
+
+    check item.position.x == 10.0
+    check item.position.y == -10.0
+    check item.customFlag == cfTest
+    check item.sprite.id == 10
+    check data == 20
+  
+    ecs.runCustomFlagSystem()
+    check item.position.x == 10.0
+    check item.position.y == -10.0
+    check item.customFlag == cfPotato
+    check item.sprite.id == 10
+    check data == 20
+
+    ecs.runRenderSpriteSystem(data)
+    check item.position.x == 10.0
+    check item.position.y == -10.0
+    check item.customFlag == cfPotato
+    check item.sprite.id == 360
+    check data == 21

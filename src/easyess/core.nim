@@ -790,10 +790,16 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
       groupIdent = ident("run" & firstLetterUpper(groupName))
       systemsDef = newNimNode(nnkStmtList)
       dataName = ident("data")
-    var groupDataType = newNilLit()
+    
+    var
+      groupDataType = newNilLit()
+      callings = newStmtList()
 
     for system in systems:
-      let (name, signature, _, entireSystem, dataType, sysItemName) = system
+      let
+        (name, signature, _, entireSystem, dataType, sysItemName) = system
+        systemIdent = ident("run" & firstLetterUpper($name))
+      
       if groupDataType.kind == nnkNilLit:
         groupDataType = dataType
       else:
@@ -802,26 +808,42 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
       result.add quote do:
         `entireSystem`
+      
+      let systemDefinition = newEmptyNode()
 
       if dataType.kind == nnkNilLit:
-        systemsDef.add quote do:
-          for `sysItemName` in `ecsName`.queryAll(`signature`):
-            let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
-            `name`(`itemname`)
-      else:
-        systemsDef.add quote do:
-          for `sysItemName` in `ecsName`.queryAll(`signature`):
-            let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
-            `name`(`itemname`, `dataName`)
+        result.add quote do:
+          proc `systemIdent`*(`ecsName`: `ecsType`) =
+            for `sysItemName` in `ecsName`.queryAll(`signature`):
+              let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
+              `name`(`itemname`)
+        
+        let calling = quote do:
+          `systemIdent`(`ecsName`)
+        
+        callings.add(calling)
 
+      else:
+        result.add quote do:
+          proc `systemIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+            for `sysItemName` in `ecsName`.queryAll(`signature`):
+              let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
+              `name`(`itemname`, `dataName`)
+        
+        let calling = quote do:
+          `systemIdent`(`ecsName`, `dataName`)
+        
+        callings.add(calling)
+
+  
     if groupDataType.kind == nnkNilLit:
       result.add quote do:
         proc `groupIdent`*(`ecsName`: `ecsType`) =
-          `systemsDef`
+          `callings`
     else:
       result.add quote do:
-        proc `groupIdent`*(`ecsName`: `ecsType`; `dataName`: `groupDataType`) =
-          `systemsDef`
+        proc `groupIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+          `callings`
 
   when ecsDebugMacros: echo repr(result)
 
