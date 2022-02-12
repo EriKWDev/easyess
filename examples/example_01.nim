@@ -77,7 +77,7 @@ sys [Sprite], renderingGroup:
   var secondGlobalValue = "Renderingwindow"
 
   proc renderSpriteSystem(item: Item, game: var Game) =
-    # Note that we request `var Game` here -------^^^^^^^^
+    # Note that we request `var Game` here: ^^^^^^^^
     # That means that when we later call `ecs.runRendering()`,
     # we will have to supply an extra argument of the same type!
     # like so: `ecs.runRendering(game)`
@@ -188,6 +188,11 @@ when isMainModule:
   echo "\n == Running \"systems\" group 10 times == "
   for i in 0 ..< 10: # You would probably use an infinite game loop instead of a for loop..
     ecs.runSystems()
+  
+  # You can also call systems individually using `ecs.run<SystemName>()`
+  echo "\n == Running \"moveSystem\" alone 10 times == "
+  for i in 0 ..< 10:
+    ecs.runMoveSystem()
 
   echo "\n == Running \"rendering\" group once == "
   # Note that we have to pass `game: var Game` here!
@@ -233,4 +238,5 @@ when isMainModule:
   # of easyess to get a bit more tecchnical documentation for each and every function and
   # template!
 
-  # Try to compile this using `-d:danger` or `-d:release` and notice the difference!
+  # Try to compile this using `-d:danger` or `-d:release` and see if you can
+  # notice the difference in the output!

@@ -208,7 +208,7 @@ suite "Systems: " & suiteName:
   test "Can run systems individually, regardless of group":
     let
       ecs = newEcs()
-      entity = ecs.registerEntity("Entity"): (
+      entity = ecs.createEntity("Entity"): (
         Position(x: 0.0, y: 0.0),
         Velocity(dx: 10.0, dy: -10.0),
         [Sprite](id: 10),
