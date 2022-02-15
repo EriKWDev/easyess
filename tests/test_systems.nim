@@ -33,6 +33,9 @@ comp:
 
     ToBeRemoved = bool
 
+    ComponentWithVeryLongNameThatIsCumbersome = object
+      value: int
+
 
 const
   systemsGroup = "systems"
@@ -71,12 +74,38 @@ sys [ToBeRemoved], systemsGroup:
   func toBeRemovedSystem(item: Item) =
     item.removeEntity()
 
+sys [flag: CustomFlag, remove: ToBeRemoved], systemsGroup:
+  func customFlagSystem2(item: Item) =
+    debugEcho remove
+
+    case flag:
+      of cfTest: flag = flag
+      else: flag = flag
+
+sys [component: ComponentWithVeryLongNameThatIsCumbersome], "longNames":
+  func longNameSystem(item: Item) =
+    inc component.value 
+
 
 createECS(ECSConfig(maxEntities: 100))
 
 const suiteName = when defined(release): "release" else: "debug"
 
 suite "Systems: " & suiteName:
+  test "Can use custom names for components in systems":
+    let
+      ecs = newEcs()
+      entity = ecs.createEntity("Entity"): (
+        ComponentWithVeryLongNameThatIsCumbersome(value: 0),
+      )
+      item = (ecs, entity)
+    
+    check item.componentWithVeryLongNameThatIsCumbersome.value == 0
+    for i in 1 .. 10:
+      ecs.runLongNameSystem()
+    check item.componentWithVeryLongNameThatIsCumbersome.value == 10
+
+
   test "Simple system gets executed everytime 'run<SystemGroup>()' is called":
     let
       ecs = newEcs()

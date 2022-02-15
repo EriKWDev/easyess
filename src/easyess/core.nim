@@ -138,7 +138,7 @@ macro comp*(body: untyped) =
   result = body
   when ecsDebugMacros: echo repr(result)
 
-macro sys*(components: openArray[untyped];
+macro sys*(components: untyped;
            group: static[string];
            system: untyped) =
   ## Define a system. Systems are defined by what components they wish to work on.
@@ -188,8 +188,8 @@ macro sys*(components: openArray[untyped];
   let
     systemsignature = newNimNode(nnkCurly)
     beforeSystem = newNimNode(nnkStmtList)
-    tupleDef = newNimNode(nnkTupleTy)
     containerTemplates = newNimNode(nnkStmtList)
+    componentTypes: NimNode = newNimNode(nnkStmtList)
 
   var isFunc = true
 
@@ -226,26 +226,38 @@ macro sys*(components: openArray[untyped];
         beforeSystem.add(c1)
 
   for component in components:
-    systemsignature.add(ident(toComponentKindName($component)))
+    var
+      componentName = ""
+      componentTypeName = ""
+
+    case component.kind
+    of nnkIdent:
+      componentName = firstLetterLower($component)
+      componentTypeName = $component
+    of nnkExprColonExpr:
+      var i = 0
+      for node in component.children:
+        if i == 0: componentName = $node
+        elif i == 1: componentTypeName = $node
+        inc i
+    else:
+      error(&"Unsupported system component list kind '{component.kind}'")
+
+    systemsignature.add(ident(toComponentKindName(componentTypeName)))
 
     let
-      componentLower = ident(firstLetterLower($component))
-      cn = toContainerName($component)
+      cn = toContainerName(componentTypeName)
+      templateName = ident(componentName)
       containerName = ident(cn)
-      componentIdent = ident($component)
+      componentIdent = ident(componentTypeName)
       templateComment = newCommentStmtNode(&"Expands to `ecs.{cn}[entity.idx]`")
+    
+    componentTypes.add(componentIdent)
 
     containerTemplates.add quote do:
-      template `componentLower`(): `componentIdent` =
+      template `templateName`(): `componentIdent` =
         `templateComment`
         `itemName`.`ecsName`.`containerName`[`itemName`.`entityName`.idx]
-
-    let identDefs = newNimNode(nnkIdentDefs).add(
-      componentLower,
-      componentIdent,
-      newNimNode(nnkEmpty)
-    )
-    tupleDef.add(identDefs)
 
   let key = $group
   if key notin systemDefinitions:
@@ -282,7 +294,7 @@ macro sys*(components: openArray[untyped];
   let systemDefinition: SystemDefinition = (
     name: systemName,
     signature: systemsignature,
-    components: components,
+    components: componentTypes,
     entireSystem: entireSystem,
     dataType: dataType,
     itemName: itemName
@@ -813,7 +825,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
       if dataType.kind == nnkNilLit:
         result.add quote do:
-          proc `systemIdent`*(`ecsName`: `ecsType`) =
+          template `systemIdent`*(`ecsName`: `ecsType`) =
             for `sysItemName` in `ecsName`.queryAll(`signature`):
               let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
               `name`(`itemname`)
@@ -825,7 +837,7 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
 
       else:
         result.add quote do:
-          proc `systemIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+          template `systemIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
             for `sysItemName` in `ecsName`.queryAll(`signature`):
               let `sysItemName`: `itemType` = (`ecsName`, `sysItemName`)
               `name`(`itemname`, `dataName`)
@@ -838,11 +850,11 @@ macro createECS*(config: static[ECSConfig] = ECSConfig(maxEntities: 100)) =
   
     if groupDataType.kind == nnkNilLit:
       result.add quote do:
-        proc `groupIdent`*(`ecsName`: `ecsType`) =
+        template `groupIdent`*(`ecsName`: `ecsType`) =
           `callings`
     else:
       result.add quote do:
-        proc `groupIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
+        template `groupIdent`*(`ecsName`: `ecsType`, `dataName`: `groupDataType`) =
           `callings`
 
   when ecsDebugMacros: echo repr(result)

@@ -11,13 +11,13 @@ comp:
       dy: float
 
 
-sys [Position, Velocity], "systems":
+sys [Position, vel: Velocity], "systems":
   func moveSystem(item: Item) =
     let
       (ecs, entity) = item
       oldPosition = position
 
-    position.y += velocity.dy
+    position.y += vel.dy
     item.position.x += item.velocity.dx
 
     when not defined(release):

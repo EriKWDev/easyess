@@ -1,7 +1,7 @@
 # Package
-version       = "0.1.2"
-author        = "ErikWDev Ubuntu"
-description   = "A new awesome nimble package"
+version       = "0.2.0"
+author        = "ErikWDev"
+description   = "A simple ECS - easyess"
 license       = "MIT"
 srcDir        = "src"
 

@@ -86,10 +86,13 @@ sys [Sprite], renderingGroup:
     inc oneGlobalValue
     inc game.value
 
-
-sys [IsDead], systemsGroup:
+# If you want to give your components a different variable
+# name within the system, you can do so by specifying it as
+# such: `<name>: <ComponentType>`. The default name is always
+# otherwise`<componentType>` (first letter lowercase)
+sys [dead: IsDead], systemsGroup:
   proc isDeadSystem(item: Item) =
-    echo isDead
+    echo dead
 
 sys [CustomFlag], systemsGroup:
   proc customFlagSystem(item: Item) =

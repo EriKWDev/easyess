@@ -18,6 +18,7 @@ experience I began investigaring them more.
 ## Example
 The minimalistic example in `example/minimal.nim` without comments and detailed explanations looks like the following:
 ```nim
+
 import easyess
 
 comp:
@@ -31,13 +32,13 @@ comp:
       dy: float
 
 
-sys [Position, Velocity], "systems":
+sys [Position, vel: Velocity], "systems":
   func moveSystem(item: Item) =
     let
       (ecs, entity) = item
       oldPosition = position
 
-    position.y += velocity.dy
+    position.y += vel.dy
     item.position.x += item.velocity.dx
 
     when not defined(release):
@@ -49,18 +50,18 @@ createECS(ECSConfig(maxEntities: 100))
 when isMainModule:
   let
     ecs = newECS()
-    entity1 = ecs.createEntity("Entity 1"): (
-      Position(x: 0.0, y: 0.0),
-      Velocity(dx: 10.0, dy: -10.0)
-    )
-    entity2 = ecs.newEntity("Entity 2")
+    entity2 = ecs.newEntity("test")
+    # entity1 = ecs.createEntity("Entity 1"): (
+    #   Position(x: 0.0, y: 0.0),
+    #   Velocity(dx: 10.0, dy: -10.0)
+    # )
+    # entity2 = ecs.newEntity("Entity 2")
 
-  (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
-  (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
+  # (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
+  # (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
 
-  for i in 1 .. 10:
-    ecs.runSystems()
-
+  # for i in 1 .. 10:
+  #   ecs.runSystems()
 ```
 
 This example is taken from `examples/example_01.nim`. It is quite long, but
@@ -156,10 +157,13 @@ sys [Sprite], renderingGroup:
     inc oneGlobalValue
     inc game.value
 
-
-sys [IsDead], systemsGroup:
+# If you want to give your components a different variable
+# name within the system, you can do so by specifying it as
+# such: `<name>: <ComponentType>`. The default name is always
+# otherwise`<componentType>` (first letter lowercase)
+sys [dead: IsDead], systemsGroup:
   proc isDeadSystem(item: Item) =
-    echo isDead
+    echo dead
 
 sys [CustomFlag], systemsGroup:
   proc customFlagSystem(item: Item) =

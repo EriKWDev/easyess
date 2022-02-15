@@ -18,3 +18,4 @@
     - [X] Add above optimization to `queryAll()` and `newEntity()`
 
 - [ ] Only export component procedures and templates for a given Component if it is marked with *
+- [X] Be able to name arguments in the sys-macro
