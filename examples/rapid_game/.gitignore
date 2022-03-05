@@ -1,0 +1,20 @@
+
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+*.out
+*.exe
+*.bin
+
+bin/
+htmldocs/
+env.json
+!LICENSE
+!README
+!TODO

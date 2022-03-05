@@ -22,7 +22,6 @@ experience I began investigaring them more.
 - [X] Good enough performance for simple games IMO
 - [X] Ability to group systems and run groups
   - [X] All systems can be run individually as well
-- [X] 
 
 ## TODO
 - [ ] Ability to pause and unpause systems
