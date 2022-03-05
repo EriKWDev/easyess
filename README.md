@@ -7,13 +7,29 @@
 
 ## About
 First and foremost, if you really want an ECS with great performance
-and lots of thought put into it, this is not for you. I instead point
-you to the amazing [polymorph](https://github.com/rlipsc/polymorph).
+and lots of thought put into it, this might not be for you. I instead point
+you to the amazing [polymorph](https://github.com/rlipsc/polymorph) which has
+has great documentation and great performance from own experience.
 
 Easyess started as a learning project for myself after having used polymorph
 and being amazed by its performance. I had never really gotten into writing
-more complicated `macros` and `templates` before, and after having had that
+ `macros` and `templates` in Nim before this, and after having had that
 experience I began investigaring them more.
+
+## Features
+- [X] Components of any kind (int, enum, object, tuple ..)
+- [X] Systems with ability to name components whatever `(vel: Velocity, pos: Position)`
+- [X] Good enough performance for simple games IMO
+- [X] Ability to group systems and run groups
+  - [X] All systems can be run individually as well
+- [X] 
+
+## TODO
+- [ ] Ability to pause and unpause systems
+- [ ] Ability to clear ecs worlds easily
+- [ ] Host documentation (available locally with `nimble docgen`!)
+- [ ] Add example with graphics using something like glfw / sdl2 / rapid
+- [ ] Publish sample game using `easyess`
 
 ## Example
 The minimalistic example in `example/minimal.nim` without comments and detailed explanations looks like the following:
@@ -57,16 +73,17 @@ when isMainModule:
     # )
     # entity2 = ecs.newEntity("Entity 2")
 
-  # (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
-  # (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
+  (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
+  (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
 
-  # for i in 1 .. 10:
-  #   ecs.runSystems()
+  for i in 1 .. 10:
+    ecs.runSystems()
 ```
 
 This example is taken from `examples/example_01.nim`. It is quite long, but
 includes detailed explanations in the comments and covers basically everything
-that easyess provides.
+that easyess provides. If you want the same exaple without the comments, see
+`examples/example_01_no_comments.nim`. Also check out the tests inside `tests/`!
 
 ```nim
 
@@ -317,29 +334,50 @@ when isMainModule:
 ```
 
 ## Documentation
-`nimble docgen` will generate HTML documentation. This is a special task that
-will include some example components and systems in order to also show documentation
-for all of the compileTime-generated procs, funcs, templates and macros.
+`nimble docgen` from the root of the project will generate HTML documentation.
+This is a special task that will include some example components and systems in
+order to also show documentation for all of the compileTime-generated procs,
+funcs, templates and macros.
+
+The gist of it is that:
+- For each component, the following will be generated at compile time (`Position` used as example):
+  - An enum `ComponentKind` with names like `ck<Component>` (like `ckPosition`)
+  - Procs to add and remove components:
+    - `proc add<Component>(<component>: <Component>)` (like `addPosition(Position(0.0, 0.0))`)
+    - `proc addComponent(<component>: <Component>)` (like `addComponent(position = Position(0.0, 0.0))`)
+
+    - `proc remove<Component>` (like `removePosition()`)
+    - `proc removeComponent[T: <Component>]()` (like `removeComponent[Position]()`)
+  - a template `template <component>(): <Component>` (like `template position(): Position`)
+    so that you can do `item.position += vec2(0.1, 0.1)`
+
+- An `iterator queryAll(ecs: ECS, signature: set[ComponentKind])`
+
+- For each system, the following will be generated:
+  - `proc run<GroupName>(ecs: ECS)` like (`proc runLogicSystems(ecs: ECS)`)
+  - `proc run<SystemName>(ecs: ECS)` like (`proc runPositionSystem(ecs: ECS)`)
+
+If you want to view everything generated yourself, you can compile with `-d:ecsDebugMacros`
 
 ## Performance
 While easyess provides more than enough performance for my personal needs, I have not
 done any extensive profiling or heavy optimizations other than the most obvious ones,
 including:
 - All internal 'component containers' are static `array[N, <Component>]`
-- Entity labels are not saved when -d:release and no space is even allocated for them
-- Components of smaller types like enums, integers (+ unsigned), chars and bools are supported without any 'Box types'
+- Entity labels are not stored when compiled with `-d:release`
+- Components of smaller types like enums, integers (+ unsigned), chars and bools are supported without any 'Box types'.
+  If your component is just a char, the internal container representation will be of `array[<maxEntities>, char]`
 
-I want to do a benchmark some time, but I suspect [polymorph](https://github.com/rlipsc/polymorph)
-wins by large margins compared to easyess.
+I want to do a benchmark some time, but I suspect [polymorph](https://github.com/rlipsc/polymorph) will
+win over easyess in many aspects.
 
 ## Limitations
 Currently there is no way to have components with generic types since internally only one `array[N, T]` is stored.
 This means that only one Kind of `T` can be stored and that would kind of defeat the point of having generics.
 I have to generate an enum for each component as well, and I don't know how that would handle generics.
 
-This is maybe solvable by inheritance or objects utilizing the `case kind of [...]` syntax, but I have not had a need
-to test and use it.
-
+This is maybe solvable by inheritance or objects utilizing the `case kind of [...]` syntax within an object, but I have not had a need to test and use that.
 
 ## License
-Easyess is released under the MIT license. See `LICENSE` for notes on copyright.
+Easyess is released under the MIT license. See `LICENSE` for details.
+Copyright (c) 2021-2022 ErikWDev
