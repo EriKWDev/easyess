@@ -1,43 +1,48 @@
 import easyess
 
-comp:
-  type
-    Position = object
-      x: float
-      y: float
 
-    Velocity = object
-      dx: float
-      dy: float
+## === Components ===
+
+type
+  Vector2 = object
+    x: float
+    y: float
+
+  Position {.comp.} = Vector2
+
+  Velocity {.comp.} = Vector2
+
+## === Systems ===
+
+proc positionSystem*(ecs: ECS) {.sys: (pos: Position, Velocity),
+                                 group: "logicSystems".} =
+  for entity in ecs.queryAll(signature):
+    entity.pos.x += entity.velocity.x
+    entity.pos.y += entity.velocity.y
+
+proc velocitySystem*(ecs: ECS, drag: float) {.sys: (vel: Velocity),
+                                              group: "logicSystems",
+                                              all.} =
+  vel.x *= drag
+  vel.y *= drag
+
+proc debugSystem(ecs: ECS) {.sys: (), group: "logicSystems".} =
+  for item in ecs.queryAllItems(signature):
+    echo "[debug]\n", inspect(item)
 
 
-sys [Position, vel: Velocity], "systems":
-  func moveSystem(item: Item) =
-    let
-      (ecs, entity) = item
-      oldPosition = position
-
-    position.y += vel.dy
-    item.position.x += item.velocity.dx
-
-    when not defined(release):
-      debugEcho "Moved " & ecs.inspect(entity) & " from ", oldPosition, " to ", position
-
-
-createECS(ECSConfig(maxEntities: 100))
+## === Main ===
 
 when isMainModule:
-  let
+  makeECS()
+
+  var
     ecs = newECS()
-    entity2 = ecs.newEntity("test")
-    # entity1 = ecs.createEntity("Entity 1"): (
-    #   Position(x: 0.0, y: 0.0),
-    #   Velocity(dx: 10.0, dy: -10.0)
-    # )
-    # entity2 = ecs.newEntity("Entity 2")
 
-  (ecs, entity2).addComponent(Position(x: 0.0, y: 0.0))
-  (ecs, entity2).addVelocity(Velocity(dx: -10.0, dy: 10.0))
+  discard ecs.createIt():
+    it.addPosition(Vector2(x: 0.0, y: 0.0))
+    it.addComponent(velocity = Velocity(x: 10.0, y: 10.0))
 
-  for i in 1 .. 10:
-    ecs.runSystems()
+  for i in 1..5:
+    echo "\nRound ", i, ":"
+    ecs.runLogicSystems(drag = 0.9)
